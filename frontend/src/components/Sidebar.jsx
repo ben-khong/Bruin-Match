@@ -4,7 +4,7 @@ import './Sidebar.css';
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Browse', path: '/browse' },
-
+  { label: 'Matches', path: '/matches' },
   { label: 'Profile', path: '/profile' },
 ];
 
