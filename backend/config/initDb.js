@@ -23,6 +23,17 @@ async function initDb() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS match_requests (
+      id SERIAL PRIMARY KEY,
+      requester_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (requester_id, recipient_id)
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_profiles (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
