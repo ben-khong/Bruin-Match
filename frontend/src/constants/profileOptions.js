@@ -42,9 +42,9 @@ export const WAKE_TIMES = [
 ];
 
 export const THERMOSTAT_PREFERENCES = [
-  'I like it cold',
-  'I like it cool',
-  'I like it warm',
+  'I like it cold (Below 70°F)',
+  'I like it cool (70°F - 75°F)',
+  'I like it warm (Above 75°F)',
   'No preference',
 ];
 
