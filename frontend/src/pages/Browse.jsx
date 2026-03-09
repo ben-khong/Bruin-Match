@@ -1,44 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Browse.css';
-
-const ACADEMIC_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Grad'];
-const HOUSING_TYPES = ['On-Campus Residence Halls', 'University Apartments', 'Off-Campus Apartments'];
-const ROOM_TYPES = [
-  'Classic Residence Hall - Double & Triple',
-  'Deluxe Residence Hall - Double & Triple',
-  'Plaza Residences - Double & Triple',
-  'Suites - Double & Triple',
-];
-const MOVE_IN_TERMS = ['Fall 2025', 'Winter 2026', 'Spring 2026', 'Fall 2026', 'Winter 2027', 'Spring 2027'];
-const SLEEP_TIMES = ['Before 10 PM', '10 PM to 12 AM', '12 AM to 2 AM', 'After 2 AM'];
-const THERMOSTAT_PREFERENCES = ['I like it cold', 'I like it cool', 'I like it warm', 'No preference'];
-const CLEANLINESS_LEVELS = [
-  'Very neat - I clean daily',
-  'Tidy - I clean a few times a week',
-  'Relaxed - I clean when it is noticeable',
-  'Messy does not bother me',
-];
-const GUEST_POLICIES = ['Anytime is fine', 'Fine with a heads-up', 'Occasionally, with advance notice', 'I prefer minimal visitors'];
-const NOISE_LEVELS = [
-  'Very quiet - headphones always',
-  'Moderate - occasional speakers at low volume',
-  'I like playing music/videos out loud',
-  'It varies a lot day to day',
-];
-const OVERNIGHT_GUEST_OPTIONS = ['Never', 'Rarely (once a month or less)', 'Sometimes (a few times a month)', 'Frequently (weekly)'];
-const SOCIAL_ENERGIES = [
-  'Best friends - lets hang out all the time',
-  'Friendly - eat meals together sometimes',
-  'Cordial - we coexist respectfully',
-  'Independent - I keep to myself',
-];
-const CONFLICT_STYLES = [
-  'I address it right away, face to face',
-  'I bring it up calmly after thinking it over',
-  'I prefer to text/message about it',
-  'I tend to avoid confrontation',
-];
+import {
+  ACADEMIC_YEARS,
+  HOUSING_TYPES,
+  ROOM_TYPES,
+  MOVE_IN_TERMS,
+  SLEEP_TIMES,
+  THERMOSTAT_PREFERENCES,
+  CLEANLINESS_LEVELS,
+  GUEST_POLICIES,
+  NOISE_TOLERANCES,
+  OVERNIGHT_GUEST_OPTIONS,
+  SOCIAL_ENERGIES,
+  CONFLICT_STYLES,
+} from '../constants/profileOptions';
 
 const CARDS_PER_PAGE = 6;
 
@@ -157,9 +133,9 @@ function Browse() {
 
   const clearFilters = () => {
     setFilters({
-      academic_year: '',
-      major: '',
       query: '',
+      major: '',
+      academic_year: '',
       housing_type: '',
       room_type: '',
       move_in_term: '',
@@ -234,37 +210,37 @@ function Browse() {
         <select className="filter-select" value={filters.guest_policy}
           onChange={(e) => handleFilterChange('guest_policy', e.target.value)}>
           <option value="">All Guest Preferences</option>
-          {GUEST_POLICIES.map((option) => <option key={option} value={option}>{option}</option>)}
+          {GUEST_POLICIES.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
         <select className="filter-select" value={filters.noise_tolerance}
           onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
           <option value="">All Noise Levels</option>
-          {NOISE_LEVELS.map((option) => <option key={option} value={option}>{option}</option>)}
+          {NOISE_TOLERANCES.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
         <select className="filter-select" value={filters.thermostat_temp}
           onChange={(e) => handleFilterChange('thermostat_temp', e.target.value)}>
           <option value="">All Temperature Preferences</option>
-          {THERMOSTAT_PREFERENCES.map((option) => <option key={option} value={option}>{option}</option>)}
+          {THERMOSTAT_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
         <select className="filter-select" value={filters.cleanliness_level}
           onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
           <option value="">All Cleanliness Levels</option>
-          {CLEANLINESS_LEVELS.map((level) => <option key={level} value={level}>{level}</option>)}
+          {CLEANLINESS_LEVELS.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className="filter-select" value={filters.overnight_guest_frequency}
           onChange={(e) => handleFilterChange('overnight_guest_frequency', e.target.value)}>
           <option value="">All Overnight Guest Styles</option>
-          {OVERNIGHT_GUEST_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+          {OVERNIGHT_GUEST_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
         <select className="filter-select" value={filters.social_energy}
           onChange={(e) => handleFilterChange('social_energy', e.target.value)}>
           <option value="">All Social Styles</option>
-          {SOCIAL_ENERGIES.map((energy) => <option key={energy} value={energy}>{energy}</option>)}
+          {SOCIAL_ENERGIES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <select className="filter-select" value={filters.conflict_style}
           onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
           <option value="">All Conflict Styles</option>
-          {CONFLICT_STYLES.map((style) => <option key={style} value={style}>{style}</option>)}
+          {CONFLICT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         {hasActiveFilters && (
           <button className="btn btn-ghost filter-clear" onClick={clearFilters}>
