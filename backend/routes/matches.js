@@ -113,51 +113,121 @@ router.post('/request/:userId', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/matches/accept/:requestId - accept an incoming match request
+// POST /api/matches/accept/:requestId - accept an incoming match request (atomic)
 router.post('/accept/:requestId', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const requestId = parseInt(req.params.requestId);
+  const client = await pool.connect();
 
   try {
-    const result = await pool.query(
-      `UPDATE match_requests SET status = 'accepted'
+    await client.query('BEGIN');
+
+    // Lock the row so concurrent accepts/declines on the same request are serialized
+    const lock = await client.query(
+      `SELECT id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
-       RETURNING *`,
+       FOR UPDATE`,
       [requestId, userId]
     );
 
-    if (result.rows.length === 0) {
+    if (lock.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Request not found or not authorized' });
     }
 
+    const result = await client.query(
+      `UPDATE match_requests SET status = 'accepted'
+       WHERE id = $1
+       RETURNING *`,
+      [requestId]
+    );
+
+    await client.query('COMMIT');
     res.json({ request: result.rows[0] });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Accept match request error:', error);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 
-// POST /api/matches/decline/:requestId - decline an incoming match request
+// POST /api/matches/decline/:requestId - decline an incoming match request (atomic)
 router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const requestId = parseInt(req.params.requestId);
+  const client = await pool.connect();
 
   try {
-    const result = await pool.query(
-      `UPDATE match_requests SET status = 'declined'
+    await client.query('BEGIN');
+
+    // Lock the row so concurrent accepts/declines on the same request are serialized
+    const lock = await client.query(
+      `SELECT id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
-       RETURNING *`,
+       FOR UPDATE`,
       [requestId, userId]
     );
 
-    if (result.rows.length === 0) {
+    if (lock.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Request not found or not authorized' });
     }
 
+    const result = await client.query(
+      `UPDATE match_requests SET status = 'declined'
+       WHERE id = $1
+       RETURNING *`,
+      [requestId]
+    );
+
+    await client.query('COMMIT');
     res.json({ request: result.rows[0] });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Decline match request error:', error);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
+  }
+});
+
+// DELETE /api/matches/leave/:requestId - leave an accepted group match (atomic)
+router.delete('/leave/:requestId', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const requestId = parseInt(req.params.requestId);
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Lock the row to prevent concurrent leave operations on the same match
+    const lock = await client.query(
+      `SELECT id FROM match_requests
+       WHERE id = $1 AND (requester_id = $2 OR recipient_id = $2) AND status = 'accepted'
+       FOR UPDATE`,
+      [requestId, userId]
+    );
+
+    if (lock.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Match not found or not authorized' });
+    }
+
+    await client.query(
+      `DELETE FROM match_requests WHERE id = $1`,
+      [requestId]
+    );
+
+    await client.query('COMMIT');
+    res.json({ message: 'Left group successfully' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Leave group error:', error);
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 

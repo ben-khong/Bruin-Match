@@ -190,6 +190,17 @@
   background: #e2e8f0;
 }
 
+.match-action-btn--leave {
+  width: 100%;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.match-action-btn--leave:hover {
+  background: #fee2e2;
+}
+
 /* ── Person chip ── */
 .person-chip {
   display: flex;

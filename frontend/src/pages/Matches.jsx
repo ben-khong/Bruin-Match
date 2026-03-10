@@ -77,6 +77,19 @@ function Matches() {
     }
   };
 
+  const handleLeave = async (requestId) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3001/api/matches/leave/${requestId}`, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (res.ok) fetchMatches();
+    } catch (err) {
+      console.error('Failed to leave group:', err);
+    }
+  };
+
   const handleCancel = async (requestId) => {
     const token = localStorage.getItem('token');
     try {
@@ -138,6 +151,12 @@ function Matches() {
                   <span className="group-contact-label">Contact</span>
                   <span className="group-contact-value">{m.contact_info}</span>
                 </div>
+                <button
+                  className="match-action-btn match-action-btn--leave"
+                  onClick={() => handleLeave(m.id)}
+                >
+                  Leave Group
+                </button>
               </div>
             ))}
           </div>
