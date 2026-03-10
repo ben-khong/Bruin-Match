@@ -37,17 +37,16 @@ router.get('/', authenticateToken, async (req, res) => {
       [userId]
     );
 
+    // Get all other members in the current user's group via the groups/group_members tables
     const groupResult = await pool.query(
-      `SELECT mr.id,
-        CASE WHEN mr.requester_id = $1 THEN mr.recipient_id ELSE mr.requester_id END AS member_id,
+      `SELECT gm2.user_id AS member_id,
         up.full_name, up.major, up.academic_year, up.gender,
         up.housing_type, up.room_type, up.move_in_term, up.contact_info
-       FROM match_requests mr
-       JOIN user_profiles up ON (
-         CASE WHEN mr.requester_id = $1 THEN mr.recipient_id ELSE mr.requester_id END = up.user_id
-       )
-       WHERE (mr.requester_id = $1 OR mr.recipient_id = $1) AND mr.status = 'accepted'
-       ORDER BY mr.created_at DESC`,
+       FROM group_members gm1
+       JOIN group_members gm2 ON gm1.group_id = gm2.group_id AND gm2.user_id != gm1.user_id
+       JOIN user_profiles up ON gm2.user_id = up.user_id
+       WHERE gm1.user_id = $1
+       ORDER BY gm2.joined_at DESC`,
       [userId]
     );
 
@@ -124,7 +123,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
 
     // Lock the row so concurrent accepts/declines on the same request are serialized
     const lock = await client.query(
-      `SELECT id FROM match_requests
+      `SELECT id, requester_id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
        FOR UPDATE`,
       [requestId, userId]
@@ -135,15 +134,58 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Request not found or not authorized' });
     }
 
-    const result = await client.query(
-      `UPDATE match_requests SET status = 'accepted'
-       WHERE id = $1
-       RETURNING *`,
+    const requesterId = lock.rows[0].requester_id;
+
+    await client.query(
+      `UPDATE match_requests SET status = 'accepted' WHERE id = $1`,
       [requestId]
     );
 
+    // Find existing groups for both users (lock rows to prevent race conditions)
+    const requesterMembership = await client.query(
+      `SELECT group_id FROM group_members WHERE user_id = $1 FOR UPDATE`,
+      [requesterId]
+    );
+    const recipientMembership = await client.query(
+      `SELECT group_id FROM group_members WHERE user_id = $1 FOR UPDATE`,
+      [userId]
+    );
+
+    const requesterGroupId = requesterMembership.rows[0]?.group_id ?? null;
+    const recipientGroupId = recipientMembership.rows[0]?.group_id ?? null;
+
+    if (!requesterGroupId && !recipientGroupId) {
+      // Neither is in a group — create a new group with both members
+      const newGroup = await client.query(`INSERT INTO groups DEFAULT VALUES RETURNING id`);
+      const groupId = newGroup.rows[0].id;
+      await client.query(
+        `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2), ($1, $3)`,
+        [groupId, requesterId, userId]
+      );
+    } else if (requesterGroupId && !recipientGroupId) {
+      // Requester already has a group — add recipient to it
+      await client.query(
+        `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)`,
+        [requesterGroupId, userId]
+      );
+    } else if (!requesterGroupId && recipientGroupId) {
+      // Recipient already has a group — add requester to it
+      await client.query(
+        `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)`,
+        [recipientGroupId, requesterId]
+      );
+    } else if (requesterGroupId !== recipientGroupId) {
+      // Both in different groups — merge recipient's group into requester's group
+      await client.query(
+        `UPDATE group_members SET group_id = $1 WHERE group_id = $2`,
+        [requesterGroupId, recipientGroupId]
+      );
+      await client.query(`DELETE FROM groups WHERE id = $1`, [recipientGroupId]);
+    }
+    // else: both already in the same group — no action needed
+
     await client.query('COMMIT');
-    res.json({ request: result.rows[0] });
+    res.json({ message: 'Match accepted' });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Accept match request error:', error);
@@ -193,32 +235,48 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE /api/matches/leave/:requestId - leave an accepted group match (atomic)
-router.delete('/leave/:requestId', authenticateToken, async (req, res) => {
+// DELETE /api/matches/leave - leave the current group (atomic)
+router.delete('/leave', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
-  const requestId = parseInt(req.params.requestId);
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    // Lock the row to prevent concurrent leave operations on the same match
-    const lock = await client.query(
-      `SELECT id FROM match_requests
-       WHERE id = $1 AND (requester_id = $2 OR recipient_id = $2) AND status = 'accepted'
-       FOR UPDATE`,
-      [requestId, userId]
+    // Find and lock the user's group membership
+    const membership = await client.query(
+      `SELECT group_id FROM group_members WHERE user_id = $1 FOR UPDATE`,
+      [userId]
     );
 
-    if (lock.rows.length === 0) {
+    if (membership.rows.length === 0) {
       await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Match not found or not authorized' });
+      return res.status(404).json({ error: 'You are not in a group' });
     }
 
+    const groupId = membership.rows[0].group_id;
+
+    // Remove the user from the group
     await client.query(
-      `DELETE FROM match_requests WHERE id = $1`,
-      [requestId]
+      `DELETE FROM group_members WHERE user_id = $1 AND group_id = $2`,
+      [userId, groupId]
     );
+
+    // Clear accepted match_requests involving this user so they can be re-matched
+    await client.query(
+      `DELETE FROM match_requests
+       WHERE (requester_id = $1 OR recipient_id = $1) AND status = 'accepted'`,
+      [userId]
+    );
+
+    // If the group is now empty, clean it up
+    const remaining = await client.query(
+      `SELECT COUNT(*) FROM group_members WHERE group_id = $1`,
+      [groupId]
+    );
+    if (parseInt(remaining.rows[0].count) === 0) {
+      await client.query(`DELETE FROM groups WHERE id = $1`, [groupId]);
+    }
 
     await client.query('COMMIT');
     res.json({ message: 'Left group successfully' });

@@ -77,10 +77,10 @@ function Matches() {
     }
   };
 
-  const handleLeave = async (requestId) => {
+  const handleLeave = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3001/api/matches/leave/${requestId}`, {
+      const res = await fetch('http://localhost:3001/api/matches/leave', {
         method: 'DELETE',
         headers: { Authorization: 'Bearer ' + token },
       });
@@ -125,11 +125,18 @@ function Matches() {
 
       {/* Current Group */}
       <section className="matches-section">
-        <h2 className="matches-section-title">
-          <span className="section-dot section-dot--green" />
-          Your Group
-          {group.length > 0 && <span className="section-count">{group.length}</span>}
-        </h2>
+        <div className="matches-section-header">
+          <h2 className="matches-section-title">
+            <span className="section-dot section-dot--green" />
+            Your Group
+            {group.length > 0 && <span className="section-count">{group.length}</span>}
+          </h2>
+          {group.length > 0 && (
+            <button className="match-action-btn match-action-btn--leave" onClick={handleLeave}>
+              Leave Group
+            </button>
+          )}
+        </div>
         {group.length === 0 ? (
           <p className="matches-empty-text">
             No group members yet. Accept a match request or browse for roommates.
@@ -151,12 +158,6 @@ function Matches() {
                   <span className="group-contact-label">Contact</span>
                   <span className="group-contact-value">{m.contact_info}</span>
                 </div>
-                <button
-                  className="match-action-btn match-action-btn--leave"
-                  onClick={() => handleLeave(m.id)}
-                >
-                  Leave Group
-                </button>
               </div>
             ))}
           </div>
