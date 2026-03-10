@@ -1,19 +1,8 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
-
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
-}
 
 // GET /api/matches - get sent requests, incoming requests, and group members
 router.get('/', authenticateToken, async (req, res) => {
@@ -121,7 +110,6 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Lock the row so concurrent accepts/declines on the same request are serialized
     const lock = await client.query(
       `SELECT id, requester_id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
@@ -141,7 +129,6 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
       [requestId]
     );
 
-    // Find existing groups for both users (lock rows to prevent race conditions)
     const requesterMembership = await client.query(
       `SELECT group_id FROM group_members WHERE user_id = $1 FOR UPDATE`,
       [requesterId]
@@ -195,7 +182,7 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/matches/decline/:requestId - decline an incoming match request (atomic)
+// POST /api/matches/decline/:requestId - decline an incoming match request 
 router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const requestId = parseInt(req.params.requestId);
@@ -204,7 +191,6 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Lock the row so concurrent accepts/declines on the same request are serialized
     const lock = await client.query(
       `SELECT id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
@@ -235,7 +221,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE /api/matches/leave - leave the current group (atomic)
+// DELETE /api/matches/leave - leave the current group
 router.delete('/leave', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const client = await pool.connect();
@@ -243,7 +229,6 @@ router.delete('/leave', authenticateToken, async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Find and lock the user's group membership
     const membership = await client.query(
       `SELECT group_id FROM group_members WHERE user_id = $1 FOR UPDATE`,
       [userId]
@@ -256,20 +241,17 @@ router.delete('/leave', authenticateToken, async (req, res) => {
 
     const groupId = membership.rows[0].group_id;
 
-    // Remove the user from the group
     await client.query(
       `DELETE FROM group_members WHERE user_id = $1 AND group_id = $2`,
       [userId, groupId]
     );
 
-    // Clear accepted match_requests involving this user so they can be re-matched
     await client.query(
       `DELETE FROM match_requests
        WHERE (requester_id = $1 OR recipient_id = $1) AND status = 'accepted'`,
       [userId]
     );
 
-    // If the group is now empty, clean it up
     const remaining = await client.query(
       `SELECT COUNT(*) FROM group_members WHERE group_id = $1`,
       [groupId]
