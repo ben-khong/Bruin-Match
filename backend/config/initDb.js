@@ -23,6 +23,17 @@ async function initDb() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS match_requests (
+      id SERIAL PRIMARY KEY,
+      requester_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (requester_id, recipient_id)
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_profiles (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
@@ -56,6 +67,23 @@ async function initDb() {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS groups (
+      id SERIAL PRIMARY KEY,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS group_members (
+      id SERIAL PRIMARY KEY,
+      group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (user_id)
+    );
+  `);
+
   // Backward-compatible migration for databases created before the latest 10-question survey.
   await pool.query(`
     ALTER TABLE user_preferences
@@ -77,6 +105,7 @@ async function initDb() {
     ALTER TABLE user_preferences
     ADD COLUMN IF NOT EXISTS conflict_style VARCHAR(120) NOT NULL DEFAULT 'I bring it up calmly after thinking it over';
   `);
+
 }
 
 module.exports = initDb;

@@ -18,7 +18,7 @@ import {
 
 const CARDS_PER_PAGE = 6;
 
-function RoommateCard({ user }) {
+function RoommateCard({ user, matchStatus, onSendRequest }) {
   const initials = user.full_name
     .split(' ')
     .map((n) => n[0])
@@ -31,6 +31,21 @@ function RoommateCard({ user }) {
     'University Apartments': '#ede9fe',
     'Off-Campus Apartments': '#dcfce7',
   };
+
+  let matchBtn = null;
+  if (matchStatus === 'accepted') {
+    matchBtn = <button className="match-btn match-btn--matched" disabled>Matched</button>;
+  } else if (matchStatus === 'pending_sent') {
+    matchBtn = <button className="match-btn match-btn--pending" disabled>Request Sent</button>;
+  } else if (matchStatus === 'pending_incoming') {
+    matchBtn = <button className="match-btn match-btn--incoming" disabled>Incoming Request</button>;
+  } else {
+    matchBtn = (
+      <button className="match-btn match-btn--send" onClick={() => onSendRequest(user.user_id)}>
+        Send Match Request
+      </button>
+    );
+  }
 
   return (
     <div className="roommate-card">
@@ -69,6 +84,10 @@ function RoommateCard({ user }) {
         <span className="card-contact-label">Contact</span>
         <span className="card-contact">{user.contact_info}</span>
       </div>
+
+      <div className="card-match-action">
+        {matchBtn}
+      </div>
     </div>
   );
 }
@@ -80,6 +99,7 @@ function Browse() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [matchStatuses, setMatchStatuses] = useState({});
   const [filters, setFilters] = useState({
     query: '',
     major: '',
@@ -96,6 +116,27 @@ function Browse() {
     social_energy: '',
     conflict_style: '',
   });
+
+  const fetchMatchStatuses = useCallback(async (token, currentUserId) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/matches/status', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const data = await res.json();
+      const statusMap = {};
+      (data.requests || []).forEach((r) => {
+        const otherId = r.requester_id === currentUserId ? r.recipient_id : r.requester_id;
+        if (r.status === 'accepted') {
+          statusMap[otherId] = 'accepted';
+        } else if (r.status === 'pending') {
+          statusMap[otherId] = r.requester_id === currentUserId ? 'pending_sent' : 'pending_incoming';
+        }
+      });
+      setMatchStatuses(statusMap);
+    } catch (err) {
+      console.error('Failed to fetch match statuses:', err);
+    }
+  }, []);
 
   const fetchRoommates = useCallback(async (currentPage, currentFilters) => {
     const token = localStorage.getItem('token');
@@ -123,8 +164,25 @@ function Browse() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
     fetchRoommates(page, filters);
-  }, [page, filters, fetchRoommates, navigate]);
+    fetchMatchStatuses(token, user.id);
+  }, [page, filters, fetchRoommates, fetchMatchStatuses, navigate]);
+
+  const handleSendRequest = async (recipientId) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3001/api/matches/request/${recipientId}`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (res.ok) {
+        setMatchStatuses((prev) => ({ ...prev, [recipientId]: 'pending_sent' }));
+      }
+    } catch (err) {
+      console.error('Failed to send match request:', err);
+    }
+  };
 
   const handleFilterChange = (key, value) => {
     setPage(1);
@@ -264,7 +322,14 @@ function Browse() {
       ) : (
         <>
           <div className="roommate-grid">
-            {roommates.map((u) => <RoommateCard key={u.user_id} user={u} />)}
+            {roommates.map((u) => (
+              <RoommateCard
+                key={u.user_id}
+                user={u}
+                matchStatus={matchStatuses[u.user_id] || null}
+                onSendRequest={handleSendRequest}
+              />
+            ))}
           </div>
 
           {totalPages > 1 && (
