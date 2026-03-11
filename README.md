@@ -1,24 +1,26 @@
 # Bruin Match
 
-A full-stack web application designed for UCLA students to find and connect with compatible roommates on one centralized platform. Users create a profile, fill out a lifestyle survey, browse other students, and form roommate groups. 
+A full-stack web application designed for UCLA students to find and connect with compatible roommates on one centralized platform. Users can create a profile, complete a short lifestyle survey, browse and filter other students by compatibility, send roommate requests, form groups, and communicate with them through the app.
 
 ---
 
 ## Tech Stack
-- React
-- Node.js/Express
-- PostgreSQL
-- JWT Auth
+
+- **Frontend**: React, React Router
+- **Backend**: Node.js, Express
+- **Database**: PostgreSQL
+- **Auth**: JWT (bcrypt password hashing)
 
 ---
 
 ## Features
 
-- **Secure authentication** — signup/login with username/email + password (bcrypt hashing, JWT sessions)
-- **Multi-step onboarding** — 4-step profile + lifestyle survey (13 fields total)
-- **Browse & filter** — server-side filtering by academic year, housing type, room type, and move-in term with pagination
-- **Match requests** *(in progress)* — send, accept, or reject roommate requests
-- **Roommate groups** *(in progress)* — form and manage multi-person groups
+- **Secure authentication** — signup/login with username + email + password (bcrypt hashing, JWT sessions, 7-day expiry)
+- **Multi-step onboarding** — 4-step profile + 10-question lifestyle survey
+- **Compatibility scoring** — server-ranked match results across 14 lifestyle and housing dimensions
+- **Browse & filter** — server-side filtering by academic year, major, housing type, room type, move-in term, and lifestyle preferences with pagination
+- **Match requests** — send, accept, decline, cancel, and withdraw roommate requests
+- **Roommate groups** — ACID-transactional group formation and merging on request acceptance; leave group support
 - **Chat with roommate groups** *(in progress)* — send and receive messages with roommate groups within the app
 
 ---
@@ -36,7 +38,7 @@ A full-stack web application designed for UCLA students to find and connect with
 ### 1. Clone the repo
 
 ```bash
-git clone <your-repo-url>
+git clone
 cd bruin-match
 ```
 
@@ -46,15 +48,14 @@ cd bruin-match
 createdb bruin_match
 ```
 
-Then run the schema to create all tables:
+> The server automatically runs `schema.sql` on startup via `initDb.js`, so you do not need to run the schema file manually. If you prefer to initialize the DB before starting the server:
+> ```bash
+> psql -d bruin_match -f backend/schema.sql
+> ```
 
-```bash
-psql -d bruin_match -f backend/schema.sql
-```
+### 3. Configure backend environment
 
-### 3. Configure the backend environment
-
-Create `backend/.env`:
+Create `backend/.env` (never commit this file; it is already in `.gitignore`):
 
 ```env
 PORT=3001
@@ -66,8 +67,6 @@ PGDATABASE=bruin_match
 PGPASSWORD=your_postgres_password
 PGPORT=5432
 ```
-
-> **Note:** Never commit `.env` to version control. It is already listed in `.gitignore`.
 
 ### 4. Install dependencies
 
@@ -89,6 +88,7 @@ In one terminal:
 cd backend
 npm start
 # Server running on http://localhost:3001
+# Database tables are created/migrated automatically on startup
 ```
 
 In another terminal:
@@ -129,18 +129,65 @@ Stores display and filterable profile data.
 | housing_type | VARCHAR(50) | Dorms / University Apartments / Off-Campus |
 | room_type | VARCHAR(100) | Classic / Deluxe / Suite / etc. |
 | move_in_term | VARCHAR(50) | e.g. Fall 2025 |
+| created_at | TIMESTAMP | |
 
 ### `user_preferences`
-Stores lifestyle survey answers.
+Stores 10-question lifestyle survey answers used for compatibility scoring.
 
 | Column | Type | Notes |
 |---|---|---|
 | id | SERIAL PK | |
 | user_id | INTEGER FK | References `users(id)`, unique |
-| sleep_time | VARCHAR(50) | |
-| wake_time | VARCHAR(50) | |
-| thermostat_temp | VARCHAR(50) | |
-| guest_policy | VARCHAR(50) | |
-| noise_tolerance | VARCHAR(50) | |
+| sleep_time | VARCHAR(100) | |
+| wake_time | VARCHAR(100) | |
+| thermostat_temp | VARCHAR(100) | |
+| guest_policy | VARCHAR(100) | |
+| noise_tolerance | VARCHAR(150) | |
+| cleanliness_level | VARCHAR(120) | |
+| overnight_guest_frequency | VARCHAR(120) | |
+| sharing_style | VARCHAR(150) | |
+| social_energy | VARCHAR(100) | |
+| conflict_style | VARCHAR(120) | |
+| created_at | TIMESTAMP | |
 
 > Profile + preferences are written together in a single transaction (`BEGIN` / `COMMIT`) with `ON CONFLICT DO UPDATE` so partial updates are atomic.
+
+### `match_requests`
+Tracks roommate request state between users.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | SERIAL PK | |
+| requester_id | INTEGER FK | References `users(id)` |
+| recipient_id | INTEGER FK | References `users(id)` |
+| status | VARCHAR(20) | `pending` / `accepted` / `declined` |
+| created_at | TIMESTAMP | |
+
+### `groups`
+Represents a confirmed roommate group.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | SERIAL PK | |
+| created_at | TIMESTAMP | |
+
+### `group_members`
+Maps users to their group. A user can only belong to one group at a time.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | SERIAL PK | |
+| group_id | INTEGER FK | References `groups(id)` |
+| user_id | INTEGER FK | References `users(id)`, unique |
+| joined_at | TIMESTAMP | |
+
+### Editing the Database
+
+`schema.sql` is the canonical definition of the database schema. `initDb.js` runs it on every server start (all statements use `CREATE TABLE IF NOT EXISTS`, so existing tables are not affected). It then applies `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` migration guards for any columns added after initial deployment.
+
+**To add a new column:**
+1. Add it to `schema.sql` (for fresh installs).
+2. Add a corresponding `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` block to the migrations section in `backend/config/initDb.js` (for existing installs).
+
+---
+
