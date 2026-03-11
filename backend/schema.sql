@@ -38,3 +38,28 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   conflict_style VARCHAR(120) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Match requests between users
+CREATE TABLE IF NOT EXISTS match_requests (
+  id SERIAL PRIMARY KEY,
+  requester_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (requester_id, recipient_id)
+);
+
+-- Roommate groups
+CREATE TABLE IF NOT EXISTS groups (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Group membership (one active group per user)
+CREATE TABLE IF NOT EXISTS group_members (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (user_id)
+);
