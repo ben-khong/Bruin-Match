@@ -38,3 +38,38 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   conflict_style VARCHAR(120) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS roommate_groups (
+    id SERIAL PRIMARY KEY,
+    leader_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    group_name VARCHAR(100) DEFAULT 'New Roommate Group',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Who is in the group
+CREATE TABLE IF NOT EXISTS group_members (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(group_id, user_id)
+);
+
+-- The Chat messages
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--Group Invites
+CREATE TABLE IF NOT EXISTS group_invites (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'accepted', 'declined'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(group_id, receiver_id) -- Prevents duplicate invites to the same person
+);
