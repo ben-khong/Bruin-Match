@@ -50,11 +50,11 @@
 }
 
 .section-dot--green  { background: #22c55e; }
-.section-dot--purple { background: #a855f7; }
-.section-dot--yellow { background: #eab308; }
+.section-dot--purple { background: #2d5997; }
+.section-dot--yellow { background: #f2d976; }
 
 .section-count {
-  background: #f1f5f9;
+  background: #edecd8;
   color: #475569;
   font-size: 0.78rem;
   font-weight: 700;
@@ -91,7 +91,7 @@
 
 .group-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d8d7b0;
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -114,15 +114,15 @@
   color: #1e293b;
 }
 
-.group-tag--blue   { background: #dbeafe; }
-.group-tag--yellow { background: #fef9c3; }
-.group-tag--pink   { background: #fce7f3; }
+.group-tag--blue   { background: #d0dcea; }
+.group-tag--yellow { background: #fdf6d8; }
+.group-tag--pink   { background: #f0efe3; }
 
 .group-card-contact {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #edecd8;
   padding-top: 12px;
 }
 
@@ -137,7 +137,7 @@
 .group-contact-value {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1d4ed8;
+  color: #2d5997;
 }
 
 /* ── Request list ── */
@@ -149,7 +149,7 @@
 
 .match-row {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d8d7b0;
   border-radius: 14px;
   padding: 14px 18px;
   display: flex;
@@ -195,12 +195,12 @@
 }
 
 .match-action-btn--cancel {
-  background: #f1f5f9;
+  background: #edecd8;
   color: #475569;
 }
 
 .match-action-btn--cancel:hover {
-  background: #e2e8f0;
+  background: #d8d7b0;
 }
 
 .match-action-btn--leave {
@@ -226,7 +226,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  background: linear-gradient(135deg, #2d5997, #c5c38f);
   color: #ffffff;
   font-weight: 700;
   font-size: 0.9rem;
@@ -288,7 +288,7 @@
 .matches-browse-btn {
   margin-top: 8px;
   padding: 10px 24px;
-  background: #1d4ed8;
+  background: #2d5997;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -299,7 +299,7 @@
 }
 
 .matches-browse-btn:hover {
-  background: #1e40af;
+  background: #1e3d6e;
 }
 
 /* ── Loading ── */
@@ -315,8 +315,8 @@
 .loading-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #1d4ed8;
+  border: 3px solid #d8d7b0;
+  border-top-color: #2d5997;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

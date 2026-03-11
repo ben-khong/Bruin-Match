@@ -4,9 +4,9 @@
   left: 0;
   width: 220px;
   height: 100vh;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
+  background: #2d5997;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.18);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -23,7 +23,7 @@
 .sidebar-brand {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #ffffff;
   padding: 0 8px;
 }
 
@@ -42,19 +42,19 @@
   padding: 10px 12px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .sidebar-link:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .sidebar-link.active {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: #f2d976;
+  color: #2d5997;
 }
 
 .sidebar-link {
@@ -66,8 +66,8 @@
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: #1d4ed8;
-  color: #fff;
+  background: #f2d976;
+  color: #2d5997;
   font-size: 0.68rem;
   font-weight: 700;
   border-radius: 999px;
@@ -82,19 +82,19 @@
 .sidebar-logout {
   width: 100%;
   background: transparent;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   text-align: left;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .sidebar-logout:hover {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f2d976;
+  border-color: rgba(255, 255, 255, 0.4);
 }

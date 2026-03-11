@@ -12,7 +12,7 @@
   align-items: center;
   gap: 20px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d8d7b0;
   border-radius: 20px;
   padding: 28px 32px;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
@@ -22,7 +22,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  background: linear-gradient(135deg, #2d5997, #c5c38f);
   color: #ffffff;
   font-weight: 700;
   font-size: 1.5rem;
@@ -52,7 +52,7 @@
 .profile-edit-btn {
   flex-shrink: 0;
   padding: 9px 22px;
-  background: #1d4ed8;
+  background: #2d5997;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -63,7 +63,7 @@
 }
 
 .profile-edit-btn:hover {
-  background: #1e40af;
+  background: #1e3d6e;
 }
 
 /* ── Success banner ── */
@@ -87,7 +87,7 @@
 
 .profile-section {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d8d7b0;
   border-radius: 16px;
   padding: 24px 28px;
   box-shadow: 0 1px 8px rgba(15, 23, 42, 0.05);
@@ -163,7 +163,7 @@
 .profile-input {
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d8d7b0;
   border-radius: 10px;
   font-size: 0.9rem;
   color: #1e293b;
@@ -173,7 +173,7 @@
 }
 
 .profile-input:focus {
-  outline: 2px solid #93c5fd;
+  outline: 2px solid #8aabc7;
   border-color: transparent;
 }
 
@@ -198,7 +198,7 @@
 
 .profile-cancel-btn {
   padding: 10px 24px;
-  background: #f1f5f9;
+  background: #edecd8;
   color: #475569;
   border: none;
   border-radius: 10px;
@@ -209,12 +209,12 @@
 }
 
 .profile-cancel-btn:hover:not(:disabled) {
-  background: #e2e8f0;
+  background: #d8d7b0;
 }
 
 .profile-save-btn {
   padding: 10px 28px;
-  background: #1d4ed8;
+  background: #2d5997;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -225,7 +225,7 @@
 }
 
 .profile-save-btn:hover:not(:disabled) {
-  background: #1e40af;
+  background: #1e3d6e;
 }
 
 .profile-save-btn:disabled,
@@ -247,8 +247,8 @@
 .profile-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #1d4ed8;
+  border: 3px solid #d8d7b0;
+  border-top-color: #2d5997;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
