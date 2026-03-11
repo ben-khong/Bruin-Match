@@ -25,6 +25,33 @@ A full-stack web application designed for UCLA students to find and connect with
 
 ---
 
+## Repository Structure
+
+```
+bruin-match/
+├── backend/
+│   ├── config/
+│   │   ├── db.js           # PostgreSQL connection pool
+│   │   └── initDb.js       # Runs schema.sql + migrations on server start
+│   ├── middleware/
+│   │   └── auth.js         # JWT authentication middleware (shared across routes)
+│   ├── routes/
+│   │   ├── auth.js         # POST /api/auth/signup, /login
+│   │   ├── profile.js      # GET/POST /api/profile
+│   │   ├── users.js        # GET /api/users, /api/users/:id
+│   │   └── matches.js      # Match requests and group management
+│   ├── schema.sql          # Canonical database schema
+│   ├── server.js           # Express app setup and server entry point
+│   └── .env                # Local environment variables (not committed)
+└── frontend/
+    └── src/
+        ├── components/     # Shared UI components (Sidebar, SidebarLayout)
+        ├── constants/      # Static option lists for profile/survey fields
+        └── pages/          # One file per route (Home, Login, Signup, Onboarding, Browse, Dashboard, Profile, Matches)
+```
+
+---
+
 ## Prerequisites
 
 - **Node.js** v20+
@@ -101,87 +128,7 @@ npm run dev
 
 ---
 
-## Database Schema
-
-### `users`
-Stores authentication credentials.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| username | VARCHAR(50) | Unique, not null |
-| email | VARCHAR(255) | Unique, not null |
-| password_hash | VARCHAR(255) | bcrypt |
-| created_at | TIMESTAMP | |
-
-### `user_profiles`
-Stores display and filterable profile data.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| user_id | INTEGER FK | References `users(id)`, unique |
-| full_name | VARCHAR(100) | |
-| academic_year | VARCHAR(20) | Freshman / Sophomore / Junior / Senior / Grad |
-| major | VARCHAR(100) | |
-| gender | VARCHAR(50) | |
-| contact_info | VARCHAR(255) | |
-| housing_type | VARCHAR(50) | Dorms / University Apartments / Off-Campus |
-| room_type | VARCHAR(100) | Classic / Deluxe / Suite / etc. |
-| move_in_term | VARCHAR(50) | e.g. Fall 2025 |
-| created_at | TIMESTAMP | |
-
-### `user_preferences`
-Stores 10-question lifestyle survey answers used for compatibility scoring.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| user_id | INTEGER FK | References `users(id)`, unique |
-| sleep_time | VARCHAR(100) | |
-| wake_time | VARCHAR(100) | |
-| thermostat_temp | VARCHAR(100) | |
-| guest_policy | VARCHAR(100) | |
-| noise_tolerance | VARCHAR(150) | |
-| cleanliness_level | VARCHAR(120) | |
-| overnight_guest_frequency | VARCHAR(120) | |
-| sharing_style | VARCHAR(150) | |
-| social_energy | VARCHAR(100) | |
-| conflict_style | VARCHAR(120) | |
-| created_at | TIMESTAMP | |
-
-> Profile + preferences are written together in a single transaction (`BEGIN` / `COMMIT`) with `ON CONFLICT DO UPDATE` so partial updates are atomic.
-
-### `match_requests`
-Tracks roommate request state between users.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| requester_id | INTEGER FK | References `users(id)` |
-| recipient_id | INTEGER FK | References `users(id)` |
-| status | VARCHAR(20) | `pending` / `accepted` / `declined` |
-| created_at | TIMESTAMP | |
-
-### `groups`
-Represents a confirmed roommate group.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| created_at | TIMESTAMP | |
-
-### `group_members`
-Maps users to their group. A user can only belong to one group at a time.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | SERIAL PK | |
-| group_id | INTEGER FK | References `groups(id)` |
-| user_id | INTEGER FK | References `users(id)`, unique |
-| joined_at | TIMESTAMP | |
-
-### Editing the Database
+## Database Editing
 
 `schema.sql` is the canonical definition of the database schema. `initDb.js` runs it on every server start (all statements use `CREATE TABLE IF NOT EXISTS`, so existing tables are not affected). It then applies `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` migration guards for any columns added after initial deployment.
 
