@@ -81,8 +81,6 @@ function Dashboard() {
 
 			const newGroup = await res.json();
 
-			// We need to make sure the leader_id is set in the local state immediately
-			// so the "👑 Group Leader" crown shows up without a refresh
 			const groupWithLeader = {
 				...newGroup,
 				leader_id: userData.id || userData.userId,

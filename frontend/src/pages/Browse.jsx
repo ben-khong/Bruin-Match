@@ -223,7 +223,6 @@ const fetchMyGroups = useCallback(async () => {
     const data = await res.json();
     
     if (Array.isArray(data)) {
-      // Filter for groups where you are the leader
       const led = data.filter(g => Number(g.leader_id) === Number(myId));
       
       setMyLedGroups(led);

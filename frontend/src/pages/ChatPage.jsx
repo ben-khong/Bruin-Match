@@ -1,13 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ChatWindow from '../components/ChatWindow'; // Adjust path as needed
+import ChatWindow from '../components/ChatWindow';
 import Sidebar from '../components/Sidebar';
 
 function ChatPage() {
   const { groupId } = useParams();
   const navigate = useNavigate();
   
-  // Get user data for the chat
   const userData = JSON.parse(localStorage.getItem('user'));
 
   if (!userData) {

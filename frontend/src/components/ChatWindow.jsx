@@ -2,9 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWindow.css';
 
-// Connect to backend (replace with your port if different)
 const socket = io('http://localhost:3001', {
-  reconnection: false, // Prevents infinite reconnection loops during dev
+  reconnection: false, 
 });
 
 function ChatWindow({ groupId, currentUser }) {
@@ -43,8 +42,7 @@ function ChatWindow({ groupId, currentUser }) {
 };
     fetchMembers();
     fetchHistory();
-
-    // Listen for new live messages
+    
     socket.on('receive_message', (newMessage) => {
       setMessages((prev) => [...prev, newMessage]);
     });
@@ -61,7 +59,7 @@ function ChatWindow({ groupId, currentUser }) {
     const messageData = {
       groupId,
       senderId: currentUser.id,
-      username: currentUser.username, // for immediate display
+      username: currentUser.username,
       content: input,
       created_at: new Date().toISOString()
     };

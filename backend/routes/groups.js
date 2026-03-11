@@ -15,8 +15,6 @@ function authenticateToken(req, res, next) {
     if (err) return res.status(403).json({ error: 'Invalid token' });
     
     req.user = { id: decoded.id || decoded.userId || decoded.sub };
-    
-    console.log("Authenticated User ID:", req.user.id); // THIS WILL NOW SHOW IN TERMINAL
     next();
   });
 }
@@ -59,7 +57,7 @@ router.post('/invite', authenticateToken, async (req, res) => {
 });
 
 router.post('/invite/respond', authenticateToken, async (req, res) => {
-  const { inviteId, action } = req.body; // action is 'accepted' or 'declined'
+  const { inviteId, action } = req.body;
   const client = await pool.connect();
 
   try {
@@ -125,16 +123,12 @@ router.get('/my-groups', authenticateToken, async (req, res) => {
 
 router.post('/', authenticateToken, async (req, res) => {
     try {
-        // Use group_name to match your schema
         const { group_name } = req.body; 
-        // Standardize to .id (matching your authenticateToken logic)
         const leaderId = req.user.id; 
 
         if (!leaderId) {
             return res.status(400).json({ error: "User ID missing from token" });
         }
-
-        // 1. Insert the group
         const newGroup = await pool.query(
             'INSERT INTO roommate_groups (leader_id, group_name) VALUES ($1, $2) RETURNING id, group_name, leader_id',
             [leaderId, group_name || 'New Group']
@@ -142,14 +136,11 @@ router.post('/', authenticateToken, async (req, res) => {
 
         const groupId = newGroup.rows[0].id;
   
-        // 2. IMPORTANT: Insert the leader into the members table
-        // If this step fails, the group won't show up in "my-groups"
+        
         await pool.query(
             'INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)',
             [groupId, leaderId]
         );
-  
-        console.log("Group created successfully:", newGroup.rows[0]);
         res.json(newGroup.rows[0]);
     } catch (err) {
         console.error("Group Creation Error:", err);
@@ -176,9 +167,7 @@ router.get('/:groupId/messages', authenticateToken, async (req, res) => {
 
 router.get('/:groupId/members', authenticateToken, async (req, res) => {
   try {
-    const groupId = req.params.groupId; // Ensure we get this from the URL
-    console.log("Fetching members for group ID:", groupId);
-
+    const groupId = req.params.groupId;
     const result = await pool.query(
       `SELECT u.id, u.username 
        FROM group_members gm
@@ -186,11 +175,8 @@ router.get('/:groupId/members', authenticateToken, async (req, res) => {
        WHERE gm.group_id = $1`,
       [groupId]
     );
-
-    console.log(`Found ${result.rows.length} members`);
     res.json(result.rows);
   } catch (err) {
-    // If this fails, THIS message WILL appear in your terminal
     console.error("CRITICAL ERROR IN /MEMBERS ROUTE:");
     console.error(err); 
     res.status(500).json({ error: "Server crashed while fetching members" });
