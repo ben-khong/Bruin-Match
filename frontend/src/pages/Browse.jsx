@@ -18,6 +18,23 @@ import {
 
 const CARDS_PER_PAGE = 6;
 
+const EMPTY_FILTERS = {
+  query: '',
+  major: '',
+  academic_year: '',
+  housing_type: '',
+  room_type: '',
+  move_in_term: '',
+  sleep_time: '',
+  guest_policy: '',
+  noise_tolerance: '',
+  thermostat_temp: '',
+  cleanliness_level: '',
+  overnight_guest_frequency: '',
+  social_energy: '',
+  conflict_style: '',
+};
+
 function RoommateCard({ user, matchStatus, onSendRequest }) {
   const initials = user.full_name
     .split(' ')
@@ -47,6 +64,8 @@ function RoommateCard({ user, matchStatus, onSendRequest }) {
     );
   }
 
+  const factors = user.matched_factors || [];
+
   return (
     <div className="roommate-card">
       <div className="card-header">
@@ -60,6 +79,16 @@ function RoommateCard({ user, matchStatus, onSendRequest }) {
           <div style={{ fontWeight: 700, color: '#1d4ed8' }}>{user.compatibility_score ?? 0}%</div>
         </div>
       </div>
+
+      {factors.length > 0 && (
+        <div className="card-why-match">
+          <span className="why-match-label">Why this match: </span>
+          <span className="why-match-text">
+            {factors.slice(0, 3).join(' · ')}
+            {factors.length > 3 && ` +${factors.length - 3} more`}
+          </span>
+        </div>
+      )}
 
       <div className="card-tags">
         <span className="card-tag" style={{ background: tagColor[user.housing_type] || '#f1f5f9' }}>
@@ -100,22 +129,12 @@ function Browse() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [matchStatuses, setMatchStatuses] = useState({});
-  const [filters, setFilters] = useState({
-    query: '',
-    major: '',
-    academic_year: '',
-    housing_type: '',
-    room_type: '',
-    move_in_term: '',
-    sleep_time: '',
-    guest_policy: '',
-    noise_tolerance: '',
-    thermostat_temp: '',
-    cleanliness_level: '',
-    overnight_guest_frequency: '',
-    social_energy: '',
-    conflict_style: '',
-  });
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+
+  // Saved presets state
+  const [presets, setPresets] = useState([]);
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [presetName, setPresetName] = useState('');
 
   const fetchMatchStatuses = useCallback(async (token, currentUserId) => {
     try {
@@ -161,6 +180,18 @@ function Browse() {
     }
   }, [navigate]);
 
+  const fetchPresets = useCallback(async (token) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/filters/saved', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const data = await res.json();
+      setPresets(data.presets || []);
+    } catch (err) {
+      console.error('Failed to fetch presets:', err);
+    }
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
@@ -168,6 +199,11 @@ function Browse() {
     fetchRoommates(page, filters);
     fetchMatchStatuses(token, user.id);
   }, [page, filters, fetchRoommates, fetchMatchStatuses, navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) fetchPresets(token);
+  }, [fetchPresets]);
 
   const handleSendRequest = async (recipientId) => {
     const token = localStorage.getItem('token');
@@ -190,23 +226,45 @@ function Browse() {
   };
 
   const clearFilters = () => {
-    setFilters({
-      query: '',
-      major: '',
-      academic_year: '',
-      housing_type: '',
-      room_type: '',
-      move_in_term: '',
-      sleep_time: '',
-      guest_policy: '',
-      noise_tolerance: '',
-      thermostat_temp: '',
-      cleanliness_level: '',
-      overnight_guest_frequency: '',
-      social_energy: '',
-      conflict_style: '',
-    });
+    setFilters(EMPTY_FILTERS);
     setPage(1);
+  };
+
+  const handleSavePreset = async () => {
+    if (!presetName.trim()) return;
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://localhost:3001/api/filters/saved', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: presetName.trim(), filters }),
+      });
+      if (res.ok) {
+        setPresetName('');
+        setShowSaveForm(false);
+        fetchPresets(token);
+      }
+    } catch (err) {
+      console.error('Failed to save preset:', err);
+    }
+  };
+
+  const handleApplyPreset = (preset) => {
+    setFilters({ ...EMPTY_FILTERS, ...preset.filters });
+    setPage(1);
+  };
+
+  const handleDeletePreset = async (presetId) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3001/api/filters/saved/${presetId}`, {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (res.ok) fetchPresets(token);
+    } catch (err) {
+      console.error('Failed to delete preset:', err);
+    }
   };
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
@@ -223,6 +281,39 @@ function Browse() {
           </div>
         </div>
       </header>
+
+      {/* Saved Presets Row */}
+      {(presets.length > 0 || hasActiveFilters) && (
+        <div className="presets-bar">
+          <span className="presets-label">Presets:</span>
+          {presets.map((p) => (
+            <div key={p.id} className="preset-chip">
+              <button className="preset-chip-apply" onClick={() => handleApplyPreset(p)}>{p.name}</button>
+              <button className="preset-chip-delete" onClick={() => handleDeletePreset(p.id)} title="Delete preset">×</button>
+            </div>
+          ))}
+          {hasActiveFilters && !showSaveForm && (
+            <button className="btn btn-ghost preset-save-btn" onClick={() => setShowSaveForm(true)}>
+              + Save current filters
+            </button>
+          )}
+          {showSaveForm && (
+            <div className="preset-save-form">
+              <input
+                className="preset-name-input"
+                type="text"
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                placeholder="Preset name..."
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSavePreset(); if (e.key === 'Escape') setShowSaveForm(false); }}
+              />
+              <button className="preset-save-confirm" onClick={handleSavePreset}>Save</button>
+              <button className="preset-save-cancel" onClick={() => { setShowSaveForm(false); setPresetName(''); }}>Cancel</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="filter-bar">

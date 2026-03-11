@@ -5,6 +5,8 @@ const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const usersRoutes = require('./routes/users');
 const matchesRoutes = require('./routes/matches');
+const filtersRoutes = require('./routes/filters');
+const notificationsRoutes = require('./routes/notifications');
 const initDb = require('./config/initDb');
 
 const app = express();
@@ -18,6 +20,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/matches', matchesRoutes);
+app.use('/api/filters/saved', filtersRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {

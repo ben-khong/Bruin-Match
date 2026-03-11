@@ -38,6 +38,129 @@
   font-size: 0.95rem;
 }
 
+/* ── Presets bar ── */
+.presets-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.presets-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preset-chip {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.preset-chip-apply {
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.preset-chip-apply:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.preset-chip-delete {
+  background: transparent;
+  border: none;
+  border-left: 1px solid #e2e8f0;
+  padding: 5px 8px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.preset-chip-delete:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.preset-save-btn {
+  font-size: 0.83rem;
+  color: #1d4ed8;
+  padding: 5px 12px;
+  border: 1px dashed #93c5fd;
+  border-radius: 999px;
+}
+
+.preset-save-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preset-name-input {
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  color: #1e293b;
+  outline: none;
+  width: 160px;
+}
+
+.preset-save-confirm {
+  padding: 5px 12px;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preset-save-confirm:hover { background: #1e40af; }
+
+.preset-save-cancel {
+  padding: 5px 12px;
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Why this match ── */
+.card-why-match {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.why-match-label {
+  font-weight: 700;
+  color: #15803d;
+}
+
+.why-match-text {
+  color: #166534;
+}
+
 /* ── Filter bar ── */
 .filter-bar {
   display: flex;

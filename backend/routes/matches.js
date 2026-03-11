@@ -94,6 +94,21 @@ router.post('/request/:userId', authenticateToken, async (req, res) => {
       [requesterId, recipientId]
     );
 
+    // Notify the recipient (non-fatal)
+    try {
+      const nameResult = await pool.query(
+        'SELECT full_name FROM user_profiles WHERE user_id = $1',
+        [requesterId]
+      );
+      const requesterName = nameResult.rows[0]?.full_name || 'Someone';
+      await pool.query(
+        `INSERT INTO notifications (user_id, type, message) VALUES ($1, 'request_received', $2)`,
+        [recipientId, `${requesterName} sent you a match request!`]
+      );
+    } catch (notifErr) {
+      console.error('Notification insert error:', notifErr);
+    }
+
     res.status(201).json({ request: result.rows[0] });
   } catch (error) {
     console.error('Send match request error:', error);
@@ -171,6 +186,17 @@ router.post('/accept/:requestId', authenticateToken, async (req, res) => {
     }
     // else: both already in the same group — no action needed
 
+    // Notify the original requester that their request was accepted
+    const acceptorName = await client.query(
+      'SELECT full_name FROM user_profiles WHERE user_id = $1',
+      [userId]
+    );
+    const name = acceptorName.rows[0]?.full_name || 'Someone';
+    await client.query(
+      `INSERT INTO notifications (user_id, type, message) VALUES ($1, 'request_accepted', $2)`,
+      [requesterId, `${name} accepted your match request!`]
+    );
+
     await client.query('COMMIT');
     res.json({ message: 'Match accepted' });
   } catch (error) {
@@ -192,7 +218,7 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
     await client.query('BEGIN');
 
     const lock = await client.query(
-      `SELECT id FROM match_requests
+      `SELECT id, requester_id FROM match_requests
        WHERE id = $1 AND recipient_id = $2 AND status = 'pending'
        FOR UPDATE`,
       [requestId, userId]
@@ -203,11 +229,24 @@ router.post('/decline/:requestId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Request not found or not authorized' });
     }
 
+    const declinedRequesterId = lock.rows[0].requester_id;
+
     const result = await client.query(
       `UPDATE match_requests SET status = 'declined'
        WHERE id = $1
        RETURNING *`,
       [requestId]
+    );
+
+    // Notify the original requester that their request was declined
+    const declinerName = await client.query(
+      'SELECT full_name FROM user_profiles WHERE user_id = $1',
+      [userId]
+    );
+    const dname = declinerName.rows[0]?.full_name || 'Someone';
+    await client.query(
+      `INSERT INTO notifications (user_id, type, message) VALUES ($1, 'request_declined', $2)`,
+      [declinedRequesterId, `${dname} declined your match request.`]
     );
 
     await client.query('COMMIT');

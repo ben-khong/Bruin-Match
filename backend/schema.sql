@@ -63,3 +63,22 @@ CREATE TABLE IF NOT EXISTS group_members (
   joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id)
 );
+
+-- Saved filter presets per user (FR-9)
+CREATE TABLE IF NOT EXISTS saved_filters (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  filters JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Notifications for request events (FR-10)
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

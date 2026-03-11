@@ -57,6 +57,28 @@
   color: #1d4ed8;
 }
 
+.sidebar-link {
+  position: relative;
+}
+
+.sidebar-notif-badge {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
 .sidebar-logout {
   width: 100%;
   background: transparent;

@@ -8,6 +8,7 @@ import Onboarding from './pages/Onboarding';
 import Browse from './pages/Browse';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
 import SidebarLayout from './components/SidebarLayout';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/dashboard" element={<SidebarLayout><Dashboard /></SidebarLayout>} />
         <Route path="/browse" element={<SidebarLayout><Browse /></SidebarLayout>} />
         <Route path="/matches" element={<SidebarLayout><Matches /></SidebarLayout>} />
+        <Route path="/notifications" element={<SidebarLayout><Notifications /></SidebarLayout>} />
         <Route path="/profile" element={<SidebarLayout><Profile /></SidebarLayout>} />
       </Routes>
     </Router>
