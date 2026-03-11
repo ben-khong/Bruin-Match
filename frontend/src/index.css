@@ -1,10 +1,25 @@
 :root {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  --navy: #3F49A5;
+  --dandelion: #EDBD60;
+  --pale-shell: #B6C8DF;
+  --strawberry: #AB3730;
+  --ivory: #FFF8EF;
+
+  --pale-shell-light: #dce6f0;
+  --dandelion-light: #FFF5D6;
+  --strawberry-light: #FFE4E1;
+  --shell-light: #E8EEF6;
+  --mint-light: #E0F5E8;
+
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-script: "Great Vibes", cursive;
+  --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
-  color: #0f172a;
-  background-color: #f5f4ea;
+  color: var(--navy);
+  background-color: var(--pale-shell-light);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -19,7 +34,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(circle at top, #e8eef5, #f5f4ea 60%);
+  background: linear-gradient(135deg, #e2ecf5 0%, var(--pale-shell-light) 40%, #eee8f4 100%);
 }
 
 a {

@@ -86,7 +86,7 @@ function Dashboard() {
       <section className="dashboard-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h3 style={{ margin: '0 0 4px' }}>Find a Roommate</h3>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+          <p style={{ margin: 0, color: '#5a6180', fontSize: '0.95rem' }}>
             Browse Bruins looking for a roommate and filter by your preferences.
           </p>
         </div>
@@ -98,20 +98,23 @@ function Dashboard() {
       <section className="dashboard-card">
         <h3 style={{ margin: '0 0 8px' }}>Top Matches</h3>
         {matchesLoading ? (
-          <p style={{ margin: 0, color: '#64748b' }}>Loading ranked matches...</p>
+          <p style={{ margin: 0, color: '#5a6180' }}>Loading ranked matches...</p>
         ) : !hasProfile ? (
-          <p style={{ margin: 0, color: '#64748b' }}>Complete onboarding to see personalized compatibility scores.</p>
+          <p style={{ margin: 0, color: '#5a6180' }}>Complete onboarding to see personalized compatibility scores.</p>
         ) : topMatches.length === 0 ? (
-          <p style={{ margin: 0, color: '#64748b' }}>No matches found yet. Try broadening filters in Browse.</p>
+          <p style={{ margin: 0, color: '#5a6180' }}>No matches found yet. Try broadening filters in Browse.</p>
         ) : (
           <div style={{ display: 'grid', gap: '10px' }}>
             {topMatches.map((match) => (
               <div
                 key={match.user_id}
                 style={{
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
+                  border: 'none',
+                  borderRadius: '3px',
+                  borderLeft: '4px solid #EDBD60',
                   padding: '10px 12px',
+                  background: '#FFF8EF',
+                  boxShadow: '1px 2px 8px rgba(63, 73, 165, 0.06)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -119,11 +122,11 @@ function Dashboard() {
               >
                 <div>
                   <div style={{ fontWeight: 600 }}>{match.full_name}</div>
-                  <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                  <div style={{ color: '#5a6180', fontSize: '0.9rem' }}>
                     {match.major} · {match.room_type}
                   </div>
                 </div>
-                <div style={{ color: '#1d4ed8', fontWeight: 700 }}>{match.compatibility_score ?? 0}%</div>
+                <div style={{ color: '#3F49A5', fontWeight: 700 }}>{match.compatibility_score ?? 0}%</div>
               </div>
             ))}
           </div>

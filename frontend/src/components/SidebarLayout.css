@@ -7,4 +7,5 @@
   margin-left: 220px;
   flex: 1;
   min-width: 0;
+  position: relative;
 }
