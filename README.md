@@ -72,9 +72,6 @@ bruin-match/
 
 ---
 
-
----
-
 ## Prerequisites
 
 - **Node.js v20+** — download from https://nodejs.org (npm is included)
@@ -119,8 +116,6 @@ If your local PostgreSQL uses a different username or password, update `PGUSER` 
 > **Finding your PostgreSQL username:** Run `psql -c "\du"` to list roles. On Windows the installer creates a `postgres` role with whatever password you set during installation. On macOS (Homebrew) the default role matches your system username, not `postgres`.
 
 ---
-
-## Setup & Running
 
 ## Setup & Running
 
