@@ -13,7 +13,7 @@
   gap: 20px;
   background: var(--ivory);
   border: none;
-  border-radius: 3px;
+  border-radius: 12px;
   border-top: 4px solid var(--dandelion);
   padding: 28px 32px;
   box-shadow:
@@ -90,7 +90,7 @@
 }
 
 .profile-section {
-  border-radius: 3px 3px 2px 2px;
+  border-radius: 12px;
   padding: 24px 28px;
   box-shadow:
     2px 3px 12px rgba(63, 73, 165, 0.08),
@@ -101,19 +101,16 @@
 .profile-section:nth-child(3n+1) {
   background: var(--shell-light);
   border-top: 4px solid var(--pale-shell);
-  transform: rotate(-0.3deg);
 }
 
 .profile-section:nth-child(3n+2) {
   background: var(--dandelion-light);
   border-top: 4px solid var(--dandelion);
-  transform: rotate(0.4deg);
 }
 
 .profile-section:nth-child(3n+3) {
   background: var(--ivory);
   border-top: 4px solid var(--navy);
-  transform: rotate(-0.2deg);
 }
 
 .profile-section-title {

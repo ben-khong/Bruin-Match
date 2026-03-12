@@ -92,7 +92,7 @@
 }
 
 .group-card {
-  border-radius: 3px 3px 2px 2px;
+  border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -106,25 +106,21 @@
 .group-card:nth-child(4n+1) {
   background: var(--dandelion-light);
   border-top: 4px solid var(--dandelion);
-  transform: rotate(-0.4deg);
 }
 
 .group-card:nth-child(4n+2) {
   background: var(--ivory);
   border-top: 4px solid var(--navy);
-  transform: rotate(0.5deg);
 }
 
 .group-card:nth-child(4n+3) {
   background: var(--shell-light);
   border-top: 4px solid var(--pale-shell);
-  transform: rotate(-0.3deg);
 }
 
 .group-card:nth-child(4n+4) {
   background: var(--mint-light);
   border-top: 4px solid #6bc492;
-  transform: rotate(0.4deg);
 }
 
 .group-card-tags {
@@ -175,7 +171,7 @@
 }
 
 .match-row {
-  border-radius: 3px;
+  border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   align-items: center;
