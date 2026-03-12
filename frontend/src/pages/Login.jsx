@@ -30,8 +30,8 @@ function Login() {
       // Store token in localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('userPassword', password);
 
-      // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
       setError('Something went wrong. Please try again.');

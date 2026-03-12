@@ -178,6 +178,7 @@ function Profile() {
       });
       const data = await res.json();
       if (!res.ok) { setPasswordMsg(data.error || 'Failed to change password.'); return; }
+      localStorage.setItem('userPassword', passwordForm.newPass);
       setPasswordMsg('Password changed successfully!');
       setPasswordForm({ current: '', newPass: '', confirm: '' });
       setTimeout(() => setPasswordMsg(''), 3000);
@@ -229,7 +230,7 @@ function Profile() {
             <div className="profile-fields">
               <Field label="Username" value={account.username} />
               <Field label="Email" value={account.email} />
-              <Field label="Password" value="••••••••" />
+              <Field label="Password" value={localStorage.getItem('userPassword') || '••••••••'} />
             </div>
           </section>
 
