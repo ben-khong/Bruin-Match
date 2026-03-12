@@ -138,6 +138,7 @@ function Browse() {
   const [loading, setLoading] = useState(true);
   const [matchStatuses, setMatchStatuses] = useState({});
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   // Saved presets state
   const [presets, setPresets] = useState([]);
@@ -204,6 +205,7 @@ function Browse() {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setCurrentUserId(user.id ?? null);
     fetchRoommates(page, filters);
     fetchMatchStatuses(token, user.id);
   }, [page, filters, fetchRoommates, fetchMatchStatuses, navigate]);
@@ -432,7 +434,7 @@ function Browse() {
       ) : (
         <>
           <div className="roommate-grid">
-            {roommates.map((u) => (
+            {roommates.filter((u) => u.user_id !== currentUserId).map((u) => (
               <RoommateCard
                 key={u.user_id}
                 user={u}
