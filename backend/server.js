@@ -41,11 +41,9 @@ app.get('/api/test', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('A Bruin connected:', socket.id);
 
   socket.on('join_group', (groupId) => {
     socket.join(groupId);
-    console.log('User joined group: ${groupId}');
   });
 
   socket.on('send_message', async (data) => {
