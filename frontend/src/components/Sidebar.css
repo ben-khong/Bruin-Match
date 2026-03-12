@@ -45,12 +45,11 @@
   gap: 4px;
 }
 
-/* --- THE FIX IS HERE --- */
 .sidebar-link {
   width: 100%;
-  display: flex;             /* Added: Flexbox */
-  align-items: center;       /* Added: Vertical centering */
-  justify-content: space-between; /* Added: Pushes badge to the right */
+  display: flex;       
+  align-items: center;  
+  justify-content: space-between;
   background: transparent;
   border: none;
   border-radius: 10px;
@@ -98,7 +97,7 @@
 
 /* --- THE NOTIFICATION BADGE --- */
 .nav-badge {
-  background-color: #ef4444; /* Red circle */
+  background-color: #ef4444;
   color: white;
   font-size: 0.7rem;
   font-weight: 700;
@@ -109,11 +108,10 @@
   align-items: center;
   justify-content: center;
   padding: 2px;
-  flex-shrink: 0; /* Prevents it from squashing */
+  flex-shrink: 0;
   margin-left: 8px;
 }
 
-/* Change badge look when the link is active */
 .sidebar-link.active .nav-badge {
   background-color: #1d4ed8;
   color: white;

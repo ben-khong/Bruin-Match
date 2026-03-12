@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Browse', path: '/browse' },
   { label: 'Matches', path: '/matches' },
-  { label: 'Chat', path: '/chat' }, // Added Chat here
+  { label: 'Chat', path: '/chat' }, 
   { label: 'Notifications', path: '/notifications' },
   { label: 'Profile', path: '/profile' },
 ];

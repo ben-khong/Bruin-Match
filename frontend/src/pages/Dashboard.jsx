@@ -131,7 +131,6 @@ function Dashboard() {
                 </button>
             </header>
 
-            {/* SPACIOUS PENDING INVITATIONS BOX */}
             {invites.length > 0 && (
                 <section
                     className="dashboard-card"

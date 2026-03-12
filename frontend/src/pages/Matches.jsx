@@ -49,7 +49,6 @@ function Matches() {
 
 		setLoading(true);
 		try {
-			// 1. Fetch pending invites
 			const res = await fetch(
 				"http://localhost:3001/api/groups/invites/pending",
 				{
@@ -59,7 +58,6 @@ function Matches() {
 			const inviteData = await res.json();
 			setIncoming(Array.isArray(inviteData) ? inviteData : []);
 
-			// 2. Fetch my groups
 			const groupListRes = await fetch(
 				"http://localhost:3001/api/groups/my-groups",
 				{
@@ -79,12 +77,11 @@ function Matches() {
 						);
 						const members = await memRes.json();
 
-						// SORTING LOGIC: Put "Me" at the top
 						const sortedMembers = Array.isArray(members)
 							? [...members].sort((a, b) => {
-									if (Number(a.id) === Number(currentUserId)) return -1; // 'a' is me, move up
-									if (Number(b.id) === Number(currentUserId)) return 1; // 'b' is me, move up
-									return 0; // keep original order for others
+									if (Number(a.id) === Number(currentUserId)) return -1;
+									if (Number(b.id) === Number(currentUserId)) return 1;
+									return 0; 
 								})
 							: [];
 

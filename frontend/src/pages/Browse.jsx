@@ -36,7 +36,6 @@ const EMPTY_FILTERS = {
   conflict_style: '',
 };
 
-// RoommateCard now uses your onInvite logic exclusively
 function RoommateCard({ user, onInvite }) {
   const initials = user.full_name
     ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -134,14 +133,12 @@ function Browse() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [currentUserId, setCurrentUserId] = useState(null);
 
-  // YOUR LOGIC STATES
   const [myLedGroups, setMyLedGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [presets, setPresets] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [presetName, setPresetName] = useState('');
 
-  // YOUR GROUP FETCHING LOGIC
   const fetchMyGroups = useCallback(async () => {
     const token = localStorage.getItem("token");
     const userData = JSON.parse(localStorage.getItem("user") || '{}');
@@ -198,7 +195,6 @@ function Browse() {
     fetchPresets(token);
   }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets, navigate]);
 
-  // YOUR INVITE LOGIC
   const handleInvite = async (receiverId) => {
     const token = localStorage.getItem("token");
     if (!selectedGroupId) {

@@ -26,7 +26,6 @@ function Chat() {
         const groupsArray = Array.isArray(groups) ? groups : [];
         setMyGroups(groupsArray);
 
-        // Auto-redirect if no ID is present
         if (!groupId && groupsArray.length > 0) {
           navigate(`/chat/${groupsArray[0].id}`, { replace: true });
         }
@@ -59,13 +58,12 @@ function Chat() {
   return (
     <div className="chat-page-main" style={{ 
       display: 'flex', 
-      height: 'calc(100vh - 40px)', // Standard height
+      height: 'calc(100vh - 40px)',
       backgroundColor: '#f8fafc', 
       padding: '20px', 
       gap: '20px' 
     }}>
       
-      {/* Conversations Sidebar */}
       <aside style={{ 
         width: '250px', 
         backgroundColor: 'white', 
@@ -99,7 +97,6 @@ function Chat() {
         </div>
       </aside>
 
-      {/* Main Chat Box */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
