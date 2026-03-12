@@ -224,8 +224,7 @@ router.delete('/:groupId/leave', authenticateToken, async (req, res) => {
     try {
         const { groupId } = req.params;
         const userId = req.user.id;
-
-        // Check if user is the leader
+        
         const groupRes = await pool.query('SELECT leader_id FROM roommate_groups WHERE id = $1', [groupId]);
         if (groupRes.rows.length > 0 && groupRes.rows[0].leader_id === userId) {
             return res.status(400).json({ error: "Leaders cannot leave. You must delete the group or transfer leadership." });
@@ -244,13 +243,10 @@ router.delete('/:groupId', authenticateToken, async (req, res) => {
         const { groupId } = req.params;
         const userId = req.user.id;
 
-        // Verify requester is the leader
         const groupRes = await pool.query('SELECT leader_id FROM roommate_groups WHERE id = $1', [groupId]);
         if (groupRes.rows.length === 0) return res.status(404).json({ error: "Group not found" });
         if (groupRes.rows[0].leader_id !== userId) return res.status(403).json({ error: "Only the leader can delete the group" });
 
-        // Delete group (Foreign keys should handle members/invites if set to CASCADE, 
-        // otherwise delete them manually first)
         await pool.query('DELETE FROM group_invites WHERE group_id = $1', [groupId]);
         await pool.query('DELETE FROM group_members WHERE group_id = $1', [groupId]);
         await pool.query('DELETE FROM roommate_groups WHERE id = $1', [groupId]);
