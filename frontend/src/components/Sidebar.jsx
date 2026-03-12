@@ -1,18 +1,31 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import "./Sidebar.css";
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import './Sidebar.css';
 
 const NAV_ITEMS = [
-	{ label: "Dashboard", path: "/dashboard" },
-	{ label: "Browse", path: "/browse" },
-
-	{ label: "Profile", path: "/profile" },
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Browse', path: '/browse' },
+  { label: 'Matches', path: '/matches' },
+  { label: 'Notifications', path: '/notifications' },
+  { label: 'Profile', path: '/profile' },
 ];
 
 function Sidebar() {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [inviteCount, setInviteCount] = useState(0);
+  	const [unreadCount, setUnreadCount] = useState(0);
+  	const [inviteCount, setInviteCount] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch('http://localhost:3001/api/notifications', {
+      headers: { Authorization: 'Bearer ' + token },
+    })
+      .then((res) => res.json())
+      .then((data) => setUnreadCount(data.unreadCount || 0))
+      .catch(() => {});
+  }, [location.pathname]);
 
 	useEffect(() => {
 		const checkInvites = async () => {
@@ -69,6 +82,9 @@ function Sidebar() {
 							{label === "Dashboard" && inviteCount > 0 && (
 								<span className="nav-badge">{inviteCount}</span>
 							)}
+              {label === 'Notifications' && unreadCount > 0 && (
+                <span className="sidebar-notif-badge">{unreadCount}</span>
+              )}
 						</button>
 					))}
 				</nav>

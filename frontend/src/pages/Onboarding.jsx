@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  ACADEMIC_YEARS,
+  GENDERS,
+  HOUSING_TYPES,
+  ROOM_TYPES,
+  MOVE_IN_TERMS,
+  SLEEP_TIMES,
+  WAKE_TIMES,
+  THERMOSTAT_PREFERENCES,
+  GUEST_POLICIES,
+  NOISE_TOLERANCES,
+  CLEANLINESS_LEVELS,
+  OVERNIGHT_GUEST_OPTIONS,
+  SHARING_STYLES,
+  SOCIAL_ENERGIES,
+  CONFLICT_STYLES,
+} from '../constants/profileOptions';
 
 const STEPS = ['Personal Info', 'Housing Preferences', 'Lifestyle', 'Review'];
-
-const ACADEMIC_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Grad'];
-
-const HOUSING_TYPES = ['On-Campus Residence Halls', 'University Apartments', 'Off-Campus Apartments'];
-
-const ROOM_TYPES = [
-  'Classic Residence Hall - Double & Triple',
-  'Deluxe Residence Hall - Double & Triple',
-  'Plaza Residences - Double & Triple',
-  'Suites - Double & Triple',
-];
 
 const ROOM_TYPE_DETAILS = {
   'Classic Residence Hall - Double & Triple': 'High-rise halls with communal bathrooms, study lounges, social lounges, and centralized laundry. No air conditioning.',
@@ -21,92 +27,56 @@ const ROOM_TYPE_DETAILS = {
   'Suites - Double & Triple': 'Suite layout with a shared living room and bathroom between bedrooms. Renovated social/study spaces. No air conditioning.',
 };
 
-const MOVE_IN_TERMS = [
-  'Fall 2025',
-  'Winter 2026',
-  'Spring 2026',
-  'Fall 2026',
-  'Winter 2027',
-  'Spring 2027',
-];
-
-const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-
 const LIFESTYLE_QUESTIONS = [
   {
     key: 'sleep_time',
     label: '1) When do you usually go to sleep?',
-    options: ['Before 10 PM', '10 PM to 12 AM', '12 AM to 2 AM', 'After 2 AM'],
+    options: SLEEP_TIMES,
   },
   {
     key: 'wake_time',
     label: '2) When do you usually wake up?',
-    options: ['Before 7 AM', '7 AM to 9 AM', '9 AM to 11 AM', 'After 11 AM'],
+    options: WAKE_TIMES,
   },
   {
     key: 'cleanliness_level',
     label: '3) How would you describe your cleanliness level?',
-    options: [
-      'Very neat - I clean daily',
-      'Tidy - I clean a few times a week',
-      'Relaxed - I clean when it is noticeable',
-      'Messy does not bother me',
-    ],
+    options: CLEANLINESS_LEVELS,
   },
   {
     key: 'guest_policy',
     label: '4) How do you feel about guests/friends visiting the room?',
-    options: ['Anytime is fine', 'Fine with a heads-up', 'Occasionally, with advance notice', 'I prefer minimal visitors'],
+    options: GUEST_POLICIES,
   },
   {
     key: 'overnight_guest_frequency',
     label: '5) How often do you plan to have overnight guests?',
-    options: ['Never', 'Rarely (once a month or less)', 'Sometimes (a few times a month)', 'Frequently (weekly)'],
+    options: OVERNIGHT_GUEST_OPTIONS,
   },
   {
     key: 'sharing_style',
     label: '6) How do you feel about sharing personal items (food, supplies, etc.)?',
-    options: [
-      'Happy to share everything',
-      'Fine sharing some things if asked',
-      'I prefer to keep my stuff separate',
-      'Absolutely not - everything stays separate',
-    ],
+    options: SHARING_STYLES,
   },
   {
     key: 'noise_tolerance',
     label: '7) What is your noise level when you are in the room?',
-    options: [
-      'Very quiet - headphones always',
-      'Moderate - occasional speakers at low volume',
-      'I like playing music/videos out loud',
-      'It varies a lot day to day',
-    ],
+    options: NOISE_TOLERANCES,
   },
   {
     key: 'thermostat_temp',
     label: '8) How do you feel about room temperature preferences?',
-    options: ['I like it cold', 'I like it cool', 'I like it warm', 'No preference'],
+    options: THERMOSTAT_PREFERENCES,
   },
   {
     key: 'social_energy',
     label: '9) How social do you want to be with your roommate?',
-    options: [
-      'Best friends - lets hang out all the time',
-      'Friendly - eat meals together sometimes',
-      'Cordial - we coexist respectfully',
-      'Independent - I keep to myself',
-    ],
+    options: SOCIAL_ENERGIES,
   },
   {
     key: 'conflict_style',
     label: '10) How do you handle conflict or disagreements?',
-    options: [
-      'I address it right away, face to face',
-      'I bring it up calmly after thinking it over',
-      'I prefer to text/message about it',
-      'I tend to avoid confrontation',
-    ],
+    options: CONFLICT_STYLES,
   },
 ];
 
@@ -249,7 +219,6 @@ function Onboarding() {
           <div className="onboarding-section">
             <h2 className="onboarding-title">Personal Information</h2>
 
-            {/* Name */}
             <div className="auth-field">
               <label>Full Name</label>
               <input
@@ -261,7 +230,6 @@ function Onboarding() {
               />
             </div>
 
-            {/* Academic Year */}
             <div className="form-row">
               <div className="auth-field">
                 <label>Academic Year</label>
@@ -277,7 +245,6 @@ function Onboarding() {
                 </select>
               </div>
 
-              {/* Gender */}
               <div className="auth-field">
                 <label>Gender</label>
                 <select
@@ -293,7 +260,6 @@ function Onboarding() {
               </div>
             </div>
 
-            {/* Major */}
             <div className="auth-field">
               <label>Major</label>
               <input
@@ -305,7 +271,6 @@ function Onboarding() {
               />
             </div>
 
-            {/* Contact Info */}
             <div className="auth-field">
               <label>Contact Info</label>
               <input
@@ -324,17 +289,18 @@ function Onboarding() {
           <div className="onboarding-section">
             <h2 className="onboarding-title">Housing Preferences</h2>
 
-            {/* Housing Type */}
             <div className="auth-field">
               <label>Housing Type</label>
               <select className="auth-input" value={form.housing_type}
-                onChange={(e) => update('housing_type', e.target.value)}>
+                onChange={(e) => {
+                  update('housing_type', e.target.value);
+                  update('room_type', '');
+                }}>
                 <option value="">Select housing type</option>
                 {HOUSING_TYPES.map((h) => (<option key={h} value={h}>{h}</option>))}
               </select>
             </div>
 
-            {/* Room Type */}
             <div className="auth-field">
               <label>Room Type</label>
               <select className="auth-input" value={form.room_type}
@@ -342,14 +308,13 @@ function Onboarding() {
                 <option value="">Select room type</option>
                 {ROOM_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
-              {form.room_type && (
+              {form.room_type && ROOM_TYPE_DETAILS[form.room_type] && (
                 <p style={{ marginTop: '8px', color: '#475569', fontSize: '0.92rem' }}>
                   {ROOM_TYPE_DETAILS[form.room_type]}
                 </p>
               )}
             </div>
 
-            {/* Move In Term */}
             <div className="auth-field">
               <label>Move-in Term</label>
               <select className="auth-input" value={form.move_in_term}
@@ -360,9 +325,8 @@ function Onboarding() {
             </div>
 
             <p style={{ marginTop: '10px', color: '#64748b', fontSize: '0.92rem' }}>
-              Typical progression of amenities: Classic -> Deluxe -> Plaza -> Suites.
+              Typical progression of amenities: Classic → Deluxe → Plaza → Suites.
             </p>
-
           </div>
         )}
 
@@ -386,7 +350,6 @@ function Onboarding() {
                 </select>
               </div>
             ))}
-
           </div>
         )}
 
@@ -410,34 +373,29 @@ function Onboarding() {
 
         {/* Navigation */}
         <div className="onboarding-nav">
-          {/* Remind me later (returns to Dashboard) */}
           <button className="btn btn-ghost" style={{ marginRight: 'auto' }} onClick={() => navigate('/dashboard')}>
             Remind me later
           </button>
-          
-          {/* Back (goes to previous page of survey) */}
+
           {step > 0 && (
-             <button className="btn btn-secondary" onClick={prevStep}>
-             Back
-             </button>
-          )}
-          
-          {/* Next (goes to next page of survey) */}
-          {step < STEPS.length - 1 && (
-            <button className="btn btn-primary" onClick={nextStep}>
-            Next
+            <button className="btn btn-secondary" onClick={prevStep}>
+              Back
             </button>
           )}
-          
-          {/* Submit (once all info is filled in) */}
+
+          {step < STEPS.length - 1 && (
+            <button className="btn btn-primary" onClick={nextStep}>
+              Next
+            </button>
+          )}
+
           {step === STEPS.length - 1 && (
-            <button className="btn btn-primary"
-            onClick={handleSubmit} disabled={submitting}>
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
               {submitting ? 'Saving...' : 'Complete Profile'}
             </button>
           )}
         </div>
-        
+
       </div>
     </div>
   );

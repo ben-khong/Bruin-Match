@@ -6,9 +6,10 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 import Browse from './pages/Browse';
-import ChatPage from './pages/ChatPage';
+import Matches from './pages/Matches';import ChatPage from './pages/ChatPage';
 
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
 import SidebarLayout from './components/SidebarLayout';
 
 function App() {
@@ -21,7 +22,8 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/dashboard" element={<SidebarLayout><Dashboard /></SidebarLayout>} />
         <Route path="/browse" element={<SidebarLayout><Browse /></SidebarLayout>} />
-        <Route path="/chat/:groupId" element={<ChatPage />} />
+        <Route path="/matches" element={<SidebarLayout><Matches /></SidebarLayout>} />
+        <Route path="/notifications" element={<SidebarLayout><Notifications /></SidebarLayout>} />        <Route path="/chat/:groupId" element={<ChatPage />} />
         <Route path="/profile" element={<SidebarLayout><Profile /></SidebarLayout>} />
       </Routes>
     </Router>

@@ -1,28 +1,30 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
-
-const ACADEMIC_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Grad'];
-const HOUSING_TYPES = ['Dorms', 'University Apartments', 'Off-Campus Apartments'];
-const ROOM_TYPES = ['Classic', 'Deluxe', 'Plaza', 'Suite', 'Univ. Apt Single', 'Univ. Apt Double', 'Univ. Apt Triple'];
-const MOVE_IN_TERMS = ['Fall 2025', 'Winter 2026', 'Spring 2026', 'Fall 2026', 'Winter 2027', 'Spring 2027'];
-const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-const SLEEP_TIMES = ['8 PM to 10 PM', '10 PM to 12 AM', '12 AM to 2 AM', 'After 2 AM'];
-const WAKE_TIMES = ['Before 6 AM', '6–8 AM', '8–10 AM', 'After 10 AM'];
-const THERMOSTAT_TEMPS = ['Cool (Below 70°F)', 'Warm (70°F - 75°F)', 'Hot (Above 75°F)', 'No preference'];
-const GUEST_POLICIES = [
-  'No guests in our room',
-  'No guests after 10 PM',
-  'Ask before having guests',
-  'No overnight guests',
-  'Guests anytime, including overnight',
-];
-const NOISE_TOLERANCES = ['TV and music off', 'TV and music okay', 'TV and music preferred'];
+import {
+  ACADEMIC_YEARS,
+  GENDERS,
+  HOUSING_TYPES,
+  ROOM_TYPES,
+  MOVE_IN_TERMS,
+  SLEEP_TIMES,
+  WAKE_TIMES,
+  THERMOSTAT_PREFERENCES,
+  GUEST_POLICIES,
+  NOISE_TOLERANCES,
+  CLEANLINESS_LEVELS,
+  OVERNIGHT_GUEST_OPTIONS,
+  SHARING_STYLES,
+  SOCIAL_ENERGIES,
+  CONFLICT_STYLES,
+} from '../constants/profileOptions';
 
 const EMPTY_FORM = {
   full_name: '', academic_year: '', major: '', gender: '', contact_info: '',
   housing_type: '', room_type: '', move_in_term: '',
   sleep_time: '', wake_time: '', thermostat_temp: '', guest_policy: '', noise_tolerance: '',
+  cleanliness_level: '', overnight_guest_frequency: '', sharing_style: '',
+  social_energy: '', conflict_style: '',
 };
 
 function Field({ label, value }) {
@@ -100,19 +102,33 @@ function Profile() {
   const update = (field, value) => setEditForm((f) => ({ ...f, [field]: value }));
 
   const handleSave = async () => {
-    if (!editForm.full_name.trim()) { setError('Full name is required.'); return; }
-    if (!editForm.academic_year) { setError('Academic year is required.'); return; }
-    if (!editForm.major.trim()) { setError('Major is required.'); return; }
-    if (!editForm.gender) { setError('Gender is required.'); return; }
-    if (!editForm.contact_info.trim()) { setError('Contact info is required.'); return; }
-    if (!editForm.housing_type) { setError('Housing type is required.'); return; }
-    if (!editForm.room_type) { setError('Room type is required.'); return; }
-    if (!editForm.move_in_term) { setError('Move-in term is required.'); return; }
-    if (!editForm.sleep_time) { setError('Sleep time is required.'); return; }
-    if (!editForm.wake_time) { setError('Wake-up time is required.'); return; }
-    if (!editForm.thermostat_temp) { setError('Temperature preference is required.'); return; }
-    if (!editForm.guest_policy) { setError('Guest policy is required.'); return; }
-    if (!editForm.noise_tolerance) { setError('Noise tolerance is required.'); return; }
+    const required = [
+      ['full_name', 'Full name'],
+      ['academic_year', 'Academic year'],
+      ['major', 'Major'],
+      ['gender', 'Gender'],
+      ['contact_info', 'Contact info'],
+      ['housing_type', 'Housing type'],
+      ['room_type', 'Room type'],
+      ['move_in_term', 'Move-in term'],
+      ['sleep_time', 'Bedtime'],
+      ['wake_time', 'Wake-up time'],
+      ['thermostat_temp', 'Temperature preference'],
+      ['guest_policy', 'Guest policy'],
+      ['noise_tolerance', 'Noise tolerance'],
+      ['cleanliness_level', 'Cleanliness level'],
+      ['overnight_guest_frequency', 'Overnight guest frequency'],
+      ['sharing_style', 'Sharing style'],
+      ['social_energy', 'Social energy'],
+      ['conflict_style', 'Conflict style'],
+    ];
+
+    for (const [field, label] of required) {
+      if (!editForm[field] || !editForm[field].trim()) {
+        setError(`${label} is required.`);
+        return;
+      }
+    }
 
     setSaving(true);
     setError('');
@@ -219,6 +235,11 @@ function Profile() {
               <Field label="Temperature" value={form.thermostat_temp} />
               <Field label="Guest Policy" value={form.guest_policy} />
               <Field label="Noise Tolerance" value={form.noise_tolerance} />
+              <Field label="Cleanliness" value={form.cleanliness_level} />
+              <Field label="Overnight Guests" value={form.overnight_guest_frequency} />
+              <Field label="Sharing Style" value={form.sharing_style} />
+              <Field label="Social Energy" value={form.social_energy} />
+              <Field label="Conflict Style" value={form.conflict_style} />
             </div>
           </section>
         </div>
@@ -238,13 +259,8 @@ function Profile() {
             <h2 className="profile-section-title">Personal Info</h2>
             <div className="profile-edit-grid">
               <EditField label="Full Name">
-                <input
-                  className="profile-input"
-                  type="text"
-                  placeholder="Jane Doe"
-                  value={editForm.full_name}
-                  onChange={(e) => update('full_name', e.target.value)}
-                />
+                <input className="profile-input" type="text" placeholder="Jane Doe"
+                  value={editForm.full_name} onChange={(e) => update('full_name', e.target.value)} />
               </EditField>
 
               <EditField label="Academic Year">
@@ -256,13 +272,8 @@ function Profile() {
               </EditField>
 
               <EditField label="Major">
-                <input
-                  className="profile-input"
-                  type="text"
-                  placeholder="e.g. Computer Science"
-                  value={editForm.major}
-                  onChange={(e) => update('major', e.target.value)}
-                />
+                <input className="profile-input" type="text" placeholder="e.g. Computer Science"
+                  value={editForm.major} onChange={(e) => update('major', e.target.value)} />
               </EditField>
 
               <EditField label="Gender">
@@ -274,13 +285,8 @@ function Profile() {
               </EditField>
 
               <EditField label="Contact Info">
-                <input
-                  className="profile-input"
-                  type="text"
-                  placeholder="Phone number or social handle"
-                  value={editForm.contact_info}
-                  onChange={(e) => update('contact_info', e.target.value)}
-                />
+                <input className="profile-input" type="text" placeholder="Phone number or social handle"
+                  value={editForm.contact_info} onChange={(e) => update('contact_info', e.target.value)} />
               </EditField>
             </div>
           </section>
@@ -337,7 +343,7 @@ function Profile() {
                 <select className="profile-input" value={editForm.thermostat_temp}
                   onChange={(e) => update('thermostat_temp', e.target.value)}>
                   <option value="">Select temperature</option>
-                  {THERMOSTAT_TEMPS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {THERMOSTAT_PREFERENCES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </EditField>
 
@@ -354,6 +360,46 @@ function Profile() {
                   onChange={(e) => update('noise_tolerance', e.target.value)}>
                   <option value="">Select noise tolerance</option>
                   {NOISE_TOLERANCES.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </EditField>
+
+              <EditField label="Cleanliness Level">
+                <select className="profile-input" value={editForm.cleanliness_level}
+                  onChange={(e) => update('cleanliness_level', e.target.value)}>
+                  <option value="">Select cleanliness level</option>
+                  {CLEANLINESS_LEVELS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </EditField>
+
+              <EditField label="Overnight Guests">
+                <select className="profile-input" value={editForm.overnight_guest_frequency}
+                  onChange={(e) => update('overnight_guest_frequency', e.target.value)}>
+                  <option value="">Select frequency</option>
+                  {OVERNIGHT_GUEST_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </EditField>
+
+              <EditField label="Sharing Style">
+                <select className="profile-input" value={editForm.sharing_style}
+                  onChange={(e) => update('sharing_style', e.target.value)}>
+                  <option value="">Select sharing style</option>
+                  {SHARING_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </EditField>
+
+              <EditField label="Social Energy">
+                <select className="profile-input" value={editForm.social_energy}
+                  onChange={(e) => update('social_energy', e.target.value)}>
+                  <option value="">Select social energy</option>
+                  {SOCIAL_ENERGIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </EditField>
+
+              <EditField label="Conflict Style">
+                <select className="profile-input" value={editForm.conflict_style}
+                  onChange={(e) => update('conflict_style', e.target.value)}>
+                  <option value="">Select conflict style</option>
+                  {CONFLICT_STYLES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </EditField>
             </div>

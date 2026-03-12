@@ -6,6 +6,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const usersRoutes = require('./routes/users');
+const filtersRoutes = require('./routes/filters');
+const notificationsRoutes = require('./routes/notifications');
 const groupRoutes = require('./routes/groups');
 const initDb = require('./config/initDb');
 const pool = require('./config/db');
@@ -29,6 +31,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/filters/saved', filtersRoutes);
+app.use('/api/notifications', notificationsRoutes);
 app.use('/api/groups', groupRoutes);
 
 // Test route

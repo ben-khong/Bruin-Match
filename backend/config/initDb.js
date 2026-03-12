@@ -1,81 +1,50 @@
+const fs = require('fs');
+const path = require('path');
 const pool = require('./db');
 
 async function initDb() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(50) UNIQUE,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      password_hash VARCHAR(255) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+  // Run schema.sql
+  const sql = fs.readFileSync(path.join(__dirname, '..', 'schema.sql'), 'utf8');
+  await pool.query(sql);
 
-  // Backward-compatible migration for existing databases.
+  // -- Migrations -------------------------------------------------------------
+  // Add ALTER TABLE statements here whenever schema.sql gains a new column.
+
+  // users: username didn't exist originally
   await pool.query(`
     ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS username VARCHAR(50);
+      ADD COLUMN IF NOT EXISTS username VARCHAR(50);
   `);
-
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS users_username_unique_idx
-    ON users (username);
+      ON users (username);
   `);
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS user_profiles (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
-      full_name VARCHAR(100) NOT NULL,
-      academic_year VARCHAR(20) NOT NULL,
-      major VARCHAR(100) NOT NULL,
-      gender VARCHAR(50) NOT NULL,
-      contact_info VARCHAR(255) NOT NULL,
-      housing_type VARCHAR(50) NOT NULL,
-      room_type VARCHAR(100) NOT NULL,
-      move_in_term VARCHAR(50) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS user_preferences (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
-      sleep_time VARCHAR(100) NOT NULL,
-      wake_time VARCHAR(100) NOT NULL,
-      thermostat_temp VARCHAR(100) NOT NULL,
-      guest_policy VARCHAR(100) NOT NULL,
-      noise_tolerance VARCHAR(100) NOT NULL,
-      cleanliness_level VARCHAR(120) NOT NULL DEFAULT 'Tidy - I clean a few times a week',
-      overnight_guest_frequency VARCHAR(120) NOT NULL DEFAULT 'Rarely (once a month or less)',
-      sharing_style VARCHAR(150) NOT NULL DEFAULT 'Fine sharing some things if asked',
-      social_energy VARCHAR(100) NOT NULL DEFAULT 'Cordial - we coexist respectfully',
-      conflict_style VARCHAR(120) NOT NULL DEFAULT 'I bring it up calmly after thinking it over',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  // Backward-compatible migration for databases created before the latest 10-question survey.
+  // user_preferences: columns added in the 10-question survey update
   await pool.query(`
     ALTER TABLE user_preferences
-    ADD COLUMN IF NOT EXISTS cleanliness_level VARCHAR(120) NOT NULL DEFAULT 'Tidy - I clean a few times a week';
+      ADD COLUMN IF NOT EXISTS cleanliness_level VARCHAR(120)
+        NOT NULL DEFAULT 'Tidy - I clean a few times a week';
   `);
   await pool.query(`
     ALTER TABLE user_preferences
-    ADD COLUMN IF NOT EXISTS overnight_guest_frequency VARCHAR(120) NOT NULL DEFAULT 'Rarely (once a month or less)';
+      ADD COLUMN IF NOT EXISTS overnight_guest_frequency VARCHAR(120)
+        NOT NULL DEFAULT 'Rarely (once a month or less)';
   `);
   await pool.query(`
     ALTER TABLE user_preferences
-    ADD COLUMN IF NOT EXISTS sharing_style VARCHAR(150) NOT NULL DEFAULT 'Fine sharing some things if asked';
+      ADD COLUMN IF NOT EXISTS sharing_style VARCHAR(150)
+        NOT NULL DEFAULT 'Fine sharing some things if asked';
   `);
   await pool.query(`
     ALTER TABLE user_preferences
-    ADD COLUMN IF NOT EXISTS social_energy VARCHAR(100) NOT NULL DEFAULT 'Cordial - we coexist respectfully';
+      ADD COLUMN IF NOT EXISTS social_energy VARCHAR(100)
+        NOT NULL DEFAULT 'Cordial - we coexist respectfully';
   `);
   await pool.query(`
     ALTER TABLE user_preferences
-    ADD COLUMN IF NOT EXISTS conflict_style VARCHAR(120) NOT NULL DEFAULT 'I bring it up calmly after thinking it over';
+      ADD COLUMN IF NOT EXISTS conflict_style VARCHAR(120)
+        NOT NULL DEFAULT 'I bring it up calmly after thinking it over';
   `);
 }
 

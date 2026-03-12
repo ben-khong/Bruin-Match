@@ -1,6 +1,6 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -21,25 +21,36 @@ const COMPATIBILITY_FIELDS = [
   'move_in_term',
 ];
 
+const FIELD_LABELS = {
+  sleep_time: 'Sleep schedule',
+  wake_time: 'Wake schedule',
+  cleanliness_level: 'Cleanliness',
+  guest_policy: 'Guest policy',
+  overnight_guest_frequency: 'Overnight guests',
+  sharing_style: 'Sharing style',
+  noise_tolerance: 'Noise level',
+  thermostat_temp: 'Temperature',
+  social_energy: 'Social style',
+  conflict_style: 'Conflict style',
+  academic_year: 'Academic year',
+  housing_type: 'Housing type',
+  room_type: 'Room type',
+  move_in_term: 'Move-in term',
+};
+
 function calculateCompatibility(candidate, currentUser) {
   let matches = 0;
+  const matchedFactors = [];
   for (const field of COMPATIBILITY_FIELDS) {
     if (candidate[field] && currentUser[field] && candidate[field] === currentUser[field]) {
       matches += 1;
+      matchedFactors.push(FIELD_LABELS[field] || field);
     }
   }
-  return Math.round((matches / COMPATIBILITY_FIELDS.length) * 100);
-}
-
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
+  return {
+    score: Math.round((matches / COMPATIBILITY_FIELDS.length) * 100),
+    matchedFactors,
+  };
 }
 
 // GET /api/users - paginated list of other users with optional filters
@@ -115,10 +126,12 @@ router.get('/', authenticateToken, async (req, res) => {
     );
 
     const rankedUsers = usersResult.rows
-      .map((user) => ({
-        ...user,
-        compatibility_score: currentUser ? calculateCompatibility(user, currentUser) : 0,
-      }))
+      .map((user) => {
+        const { score, matchedFactors } = currentUser
+          ? calculateCompatibility(user, currentUser)
+          : { score: 0, matchedFactors: [] };
+        return { ...user, compatibility_score: score, matched_factors: matchedFactors };
+      })
       .sort((a, b) => {
         if (b.compatibility_score !== a.compatibility_score) {
           return b.compatibility_score - a.compatibility_score;
