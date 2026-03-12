@@ -82,22 +82,7 @@ function RoommateCard({ user, onInvite }) {
           <span className="card-tag card-tag--room">{user.room_type}</span>
           <span className="card-tag card-tag--term">{user.move_in_term}</span>
         </div>
-        <div className="card-tags">
-          <span className="card-tag card-tag--housing">{user.housing_type}</span>
-          <span className="card-tag card-tag--room">{user.room_type}</span>
-          <span className="card-tag card-tag--term">{user.move_in_term}</span>
-        </div>
 
-        <div className="card-prefs">
-          <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🌡️</span><span>{user.thermostat_temp}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🔊</span><span>{user.noise_tolerance}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🚪</span><span>{user.guest_policy}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🧼</span><span>{user.cleanliness_level}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🛏️</span><span>{user.overnight_guest_frequency}</span></div>
-          <div className="card-pref-row"><span className="pref-icon">🤝</span><span>{user.conflict_style}</span></div>
-        </div>
         <div className="card-prefs">
           <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
           <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
