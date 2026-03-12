@@ -1,141 +1,296 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
-  const [user, setUser] = useState(null);
-  const [hasProfile, setHasProfile] = useState(true);
-  const [topMatches, setTopMatches] = useState([]);
-  const [matchesLoading, setMatchesLoading] = useState(true);
-  const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [hasProfile, setHasProfile] = useState(true);
+    const [topMatches, setTopMatches] = useState([]);
+    const [matchesLoading, setMatchesLoading] = useState(true);
+    const [invites, setInvites] = useState([]);
+    const [myGroups, setMyGroups] = useState([]);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const userData = localStorage.getItem("user");
 
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    setUser(JSON.parse(userData));
-
-    fetch('http://localhost:3001/api/profile', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const profileReady = Boolean(data.hasProfile && data.hasPreferences);
-        setHasProfile(profileReady);
-
-        if (!profileReady) {
-          setMatchesLoading(false);
-          return;
+        if (!token) {
+            navigate("/login");
+            return;
         }
 
-        return fetch('http://localhost:3001/api/users?page=1&limit=3', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        setUser(JSON.parse(userData));
+
+        fetch("http://localhost:3001/api/profile", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         })
-          .then((res) => res.json())
-          .then((matches) => {
-            setTopMatches(matches.users || []);
-          });
-      })
-      .catch((err) => console.error('Profile check failed:', err))
-      .finally(() => setMatchesLoading(false));
-  }, [navigate]);
+            .then((res) => res.json())
+            .then((data) => {
+                const profileReady = Boolean(data.hasProfile && data.hasPreferences);
+                setHasProfile(profileReady);
 
-  if (!user) return <div className="page-loading">Loading...</div>;
+                if (!profileReady) {
+                    setMatchesLoading(false);
+                    return;
+                }
 
-  return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div>
-          <h1>Dashboard</h1>
-          <p className="dashboard-subtitle">Welcome, {user.username || user.email}!</p>
-        </div>
-      </header>
+                return fetch("http://localhost:3001/api/users?page=1&limit=3", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                    .then((res) => res.json())
+                    .then((matches) => {
+                        setTopMatches(matches.users || []);
+                    });
+            })
+            .catch((err) => console.error("Profile check failed:", err))
+            .finally(() => setMatchesLoading(false));
 
-      {!hasProfile && (
-        <section className="dashboard-alert">
-          <div className="dashboard-alert-text">
-            <h3>Complete your profile</h3>
-            <p>Fill out your housing preferences so we can start matching you with roommates.</p>
-          </div>
-          <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
-            Complete Profile
-          </button>
-        </section>
-      )}
+        fetch("http://localhost:3001/api/groups/invites/pending", {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => res.json())
+            .then((data) => setInvites(data))
+            .catch((err) => console.error("Invites fetch failed", err));
+        
+        fetch("http://localhost:3001/api/groups/my-groups", {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => res.json())
+            .then((data) => setMyGroups(data))
+            .catch((err) => console.error("Groups fetch failed", err));
+    }, [navigate]);
 
-      <div className="dashboard-grid">
-        {/* How to use */}
-        <div className="dash-note dash-note--dandelion">
-          <div className="dash-note-bar dash-bar--dandelion">
-            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
-            <span className="dash-note-label">📋 How to use</span>
-          </div>
-          <div className="dash-note-body">
-            <h3>Bruin Match</h3>
-            <div className="dash-steps">
-              <div className="dash-step"><span className="dash-step-icon">✏️</span><span>Build your profile and share what matters most in a roommate.</span></div>
-              <div className="dash-step"><span className="dash-step-icon">🔍</span><span>Discover Bruins who match your lifestyle, habits, and housing needs.</span></div>
-              <div className="dash-step"><span className="dash-step-icon">💌</span><span>Invite your favorites to form your roommate group.</span></div>
-              <div className="dash-step"><span className="dash-step-icon">💬</span><span>Chat, connect, and find your perfect living match.</span></div>
-            </div>
-          </div>
-        </div>
+    const handleCreateGroup = async () => {
+        const token = localStorage.getItem("token");
+        const userData = JSON.parse(localStorage.getItem("user"));
 
-        {/* Find a Roommate */}
-        <div className="dash-note dash-note--navy">
-          <div className="dash-note-bar dash-bar--navy">
-            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
-            <span className="dash-note-label">🔍 Browse</span>
-          </div>
-          <div className="dash-note-body">
-            <h3>Find a Roommate</h3>
-            <p>Browse Bruins looking for a roommate and filter by your preferences.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/browse')} style={{ marginTop: '12px' }}>
-              Browse Roommates
-            </button>
-          </div>
-        </div>
+        const groupName = window.prompt("What would you like to name your group?", `${userData.username}'s Group`);
+        
+        if (groupName === null) return;
 
-        {/* Top Matches */}
-        <div className="dash-note dash-note--strawberry">
-          <div className="dash-note-bar dash-bar--strawberry">
-            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
-            <span className="dash-note-label">⭐ Top Matches</span>
-          </div>
-          <div className="dash-note-body">
-            <h3>Top Matches</h3>
-            {matchesLoading ? (
-              <p className="dash-note-muted">Loading ranked matches...</p>
-            ) : !hasProfile ? (
-              <p className="dash-note-muted">Complete onboarding to see personalized compatibility scores.</p>
-            ) : topMatches.length === 0 ? (
-              <p className="dash-note-muted">No matches found yet. Try broadening filters in Browse.</p>
-            ) : (
-              <div className="dash-matches-list">
-                {topMatches.map((match) => (
-                  <div key={match.user_id} className="dash-match-row">
-                    <div>
-                      <div className="dash-match-name">{match.full_name}</div>
-                      <div className="dash-match-sub">{match.major} · {match.room_type}</div>
+        try {
+            const res = await fetch("http://localhost:3001/api/groups", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ group_name: groupName || `${userData.username}'s Group` }),
+            });
+
+            if (!res.ok) throw new Error("Failed to save group");
+
+            const newGroup = await res.json();
+
+            const groupWithLeader = {
+                ...newGroup,
+                leader_id: userData.id || userData.userId,
+            };
+
+            setMyGroups((prev) => [...prev, groupWithLeader]);
+            alert(`Group "${newGroup.group_name}" Created!`);
+            
+            navigate(`/chat/${newGroup.id}`);
+        } catch (err) {
+            console.error(err);
+            alert("Error creating group.");
+        }
+    };
+
+    const handleInviteResponse = async (inviteId, action) => {
+        const token = localStorage.getItem("token");
+        await fetch("http://localhost:3001/api/groups/invite/respond", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ inviteId, action }),
+        });
+        setInvites(invites.filter((i) => i.invite_id !== inviteId));
+        if (action === "accepted") window.location.reload();
+    };
+
+    if (!user) return <div className="page-loading">Loading...</div>;
+
+    return (
+        <div className="dashboard">
+            <header className="dashboard-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p className="dashboard-subtitle">
+                        Welcome, {user.username || user.email}!
+                    </p>
+                </div>
+                <button className="btn btn-secondary" onClick={handleCreateGroup}>
+                    + Start a Group
+                </button>
+            </header>
+
+            {/* SPACIOUS PENDING INVITATIONS BOX */}
+            {invites.length > 0 && (
+                <section
+                    className="dashboard-card"
+                    style={{
+                        backgroundColor: "#fffbeb",
+                        borderLeft: "6px solid #f59e0b",
+                        marginBottom: "32px",
+                        padding: "24px 32px",
+                        borderRadius: "16px",
+                        boxShadow: "0 4px 12px rgba(245, 158, 11, 0.1)"
+                    }}
+                >
+                    <h3 style={{ 
+                        marginTop: 0, 
+                        marginBottom: "20px", 
+                        fontSize: "1.3rem", 
+                        color: "#92400e",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px"
+                    }}>
+                        <span>🔔</span> Pending Invitations
+                    </h3>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        {invites.map((inv) => (
+                            <div
+                                key={inv.invite_id}
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "20px",
+                                    backgroundColor: "white",
+                                    borderRadius: "12px",
+                                    border: "1px solid #fef3c7",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                                }}
+                            >
+                                <p style={{ margin: 0, fontSize: "1.05rem", color: "#451a03" }}>
+                                    <strong>{inv.sender_name}</strong> invited you to join{" "}
+                                    <span style={{ 
+                                        backgroundColor: "#fef3c7", 
+                                        padding: "4px 10px", 
+                                        borderRadius: "6px", 
+                                        fontWeight: "700",
+                                        color: "#92400e"
+                                    }}>
+                                        {inv.group_name || `Group #${inv.group_id}`}
+                                    </span>
+                                </p>
+                                
+                                <div style={{ display: "flex", gap: "12px" }}>
+                                    <button
+                                        className="btn btn-primary"
+                                        style={{ 
+                                            padding: "10px 24px", 
+                                            fontSize: "0.9rem", 
+                                            fontWeight: "600"
+                                        }}
+                                        onClick={() => handleInviteResponse(inv.invite_id, "accepted")}
+                                    >
+                                        Accept
+                                    </button>
+                                    <button
+                                        className="btn"
+                                        style={{
+                                            padding: "10px 24px",
+                                            fontSize: "0.9rem",
+                                            fontWeight: "600",
+                                            backgroundColor: "#fee2e2",
+                                            color: "#dc2626",
+                                            border: "1px solid #fecaca"
+                                        }}
+                                        onClick={() => handleInviteResponse(inv.invite_id, "declined")}
+                                    >
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="dash-match-score">{match.compatibility_score ?? 0}%</div>
-                  </div>
-                ))}
-              </div>
+                </section>
             )}
-          </div>
+
+            {!hasProfile && (
+                <section className="dashboard-alert">
+                    <div className="dashboard-alert-text">
+                        <h3>Complete your profile</h3>
+                        <p>Fill out your housing preferences so we can start matching you with roommates.</p>
+                    </div>
+                    <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
+                        Complete Profile
+                    </button>
+                </section>
+            )}
+
+            <div className="dashboard-grid">
+                <div className="dash-note dash-note--dandelion">
+                    <div className="dash-note-bar dash-bar--dandelion">
+                        <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+                        <span className="dash-note-label">📋 How to use</span>
+                    </div>
+                    <div className="dash-note-body">
+                        <h3>Bruin Match</h3>
+                        <div className="dash-steps">
+                            <div className="dash-step"><span className="dash-step-icon">✏️</span><span>Build your profile and share what matters most in a roommate.</span></div>
+                            <div className="dash-step"><span className="dash-step-icon">🔍</span><span>Discover Bruins who match your lifestyle, habits, and housing needs.</span></div>
+                            <div className="dash-step"><span className="dash-step-icon">💌</span><span>Invite your favorites to form your roommate group.</span></div>
+                            <div className="dash-step"><span className="dash-step-icon">💬</span><span>Chat, connect, and find your perfect living match.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="dash-note dash-note--navy">
+                    <div className="dash-note-bar dash-bar--navy">
+                        <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+                        <span className="dash-note-label">🔍 Browse</span>
+                    </div>
+                    <div className="dash-note-body">
+                        <h3>Find a Roommate</h3>
+                        <p>Browse Bruins looking for a roommate and filter by your preferences.</p>
+                        <button className="btn btn-primary" onClick={() => navigate('/browse')} style={{ marginTop: '12px' }}>
+                            Browse Roommates
+                        </button>
+                    </div>
+                </div>
+
+                <div className="dash-note dash-note--strawberry">
+                    <div className="dash-note-bar dash-bar--strawberry">
+                        <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+                        <span className="dash-note-label">⭐ Top Matches</span>
+                    </div>
+                    <div className="dash-note-body">
+                        <h3>Top Matches</h3>
+                        {matchesLoading ? (
+                            <p className="dash-note-muted">Loading ranked matches...</p>
+                        ) : !hasProfile ? (
+                            <p className="dash-note-muted">Complete onboarding to see personalized compatibility scores.</p>
+                        ) : topMatches.length === 0 ? (
+                            <p className="dash-note-muted">No matches found yet. Try broadening filters in Browse.</p>
+                        ) : (
+                            <div className="dash-matches-list">
+                                {topMatches.map((match) => (
+                                    <div key={match.user_id} className="dash-match-row">
+                                        <div>
+                                            <div className="dash-match-name">{match.full_name}</div>
+                                            <div className="dash-match-sub">{match.major} · {match.room_type}</div>
+                                        </div>
+                                        <div className="dash-match-score">{match.compatibility_score ?? 0}%</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Dashboard;

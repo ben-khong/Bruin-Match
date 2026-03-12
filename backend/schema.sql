@@ -39,31 +39,6 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Match requests between users
-CREATE TABLE IF NOT EXISTS match_requests (
-  id SERIAL PRIMARY KEY,
-  requester_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (requester_id, recipient_id)
-);
-
--- Roommate groups
-CREATE TABLE IF NOT EXISTS groups (
-  id SERIAL PRIMARY KEY,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Group membership (one active group per user)
-CREATE TABLE IF NOT EXISTS group_members (
-  id SERIAL PRIMARY KEY,
-  group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (user_id)
-);
-
 -- Saved filter presets per user (FR-9)
 CREATE TABLE IF NOT EXISTS saved_filters (
   id SERIAL PRIMARY KEY,
@@ -81,4 +56,39 @@ CREATE TABLE IF NOT EXISTS notifications (
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS roommate_groups (
+    id SERIAL PRIMARY KEY,
+    leader_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    group_name VARCHAR(100) DEFAULT 'New Roommate Group',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Who is in the group
+CREATE TABLE IF NOT EXISTS group_members (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(group_id, user_id)
+);
+
+-- The Chat messages
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--Group Invites
+CREATE TABLE IF NOT EXISTS group_invites (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES roommate_groups(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'accepted', 'declined'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(group_id, receiver_id) -- Prevents duplicate invites to the same person
 );

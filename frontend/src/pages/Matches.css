@@ -377,3 +377,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+.remove-member-btn {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto; /* Pushes it to the right of the chip */
+  transition: background 0.2s;
+}
+
+.remove-member-btn:hover {
+  background: #fecaca;
+}

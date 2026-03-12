@@ -36,34 +36,11 @@ const EMPTY_FILTERS = {
   conflict_style: '',
 };
 
-function RoommateCard({ user, matchStatus, onSendRequest }) {
+// RoommateCard now uses your onInvite logic exclusively
+function RoommateCard({ user, onInvite }) {
   const initials = user.full_name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  const tagColor = {
-    'On-Campus Residence Halls': '#dbeafe',
-    'University Apartments': '#ede9fe',
-    'Off-Campus Apartments': '#dcfce7',
-  };
-
-  let matchBtn = null;
-  if (matchStatus === 'accepted') {
-    matchBtn = <button className="match-btn match-btn--matched" disabled>Matched</button>;
-  } else if (matchStatus === 'pending_sent') {
-    matchBtn = <button className="match-btn match-btn--pending" disabled>Request Sent</button>;
-  } else if (matchStatus === 'pending_incoming') {
-    matchBtn = <button className="match-btn match-btn--incoming" disabled>Incoming Request</button>;
-  } else {
-    matchBtn = (
-      <button className="match-btn match-btn--send" onClick={() => onSendRequest(user.user_id)}>
-        Send Match Request
-      </button>
-    );
-  }
+    ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : '??';
 
   const factors = user.matched_factors || [];
 
@@ -106,7 +83,22 @@ function RoommateCard({ user, matchStatus, onSendRequest }) {
           <span className="card-tag card-tag--room">{user.room_type}</span>
           <span className="card-tag card-tag--term">{user.move_in_term}</span>
         </div>
+        <div className="card-tags">
+          <span className="card-tag card-tag--housing">{user.housing_type}</span>
+          <span className="card-tag card-tag--room">{user.room_type}</span>
+          <span className="card-tag card-tag--term">{user.move_in_term}</span>
+        </div>
 
+        <div className="card-prefs">
+          <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🌡️</span><span>{user.thermostat_temp}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🔊</span><span>{user.noise_tolerance}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🚪</span><span>{user.guest_policy}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🧼</span><span>{user.cleanliness_level}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🛏️</span><span>{user.overnight_guest_frequency}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🤝</span><span>{user.conflict_style}</span></div>
+        </div>
         <div className="card-prefs">
           <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
           <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
@@ -124,7 +116,9 @@ function RoommateCard({ user, matchStatus, onSendRequest }) {
         </div>
       </div>
       <div className="card-statusbar">
-        {matchBtn}
+        <button className="match-btn match-btn--send" onClick={() => onInvite(user.user_id)}>
+          Send Match Request
+        </button>
       </div>
     </div>
   );
@@ -137,40 +131,39 @@ function Browse() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [matchStatuses, setMatchStatuses] = useState({});
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Saved presets state
+  // YOUR LOGIC STATES
+  const [myLedGroups, setMyLedGroups] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
   const [presets, setPresets] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [presetName, setPresetName] = useState('');
 
-  const fetchMatchStatuses = useCallback(async (token, currentUserId) => {
+  // YOUR GROUP FETCHING LOGIC
+  const fetchMyGroups = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    const userData = JSON.parse(localStorage.getItem("user") || '{}');
+    const myId = userData.id || userData.userId;
+    if (!token || !myId) return;
+
     try {
-      const res = await fetch('http://localhost:3001/api/matches/status', {
-        headers: { Authorization: 'Bearer ' + token },
+      const res = await fetch('http://localhost:3001/api/groups/my-groups', {
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      const statusMap = {};
-      (data.requests || []).forEach((r) => {
-        const otherId = r.requester_id === currentUserId ? r.recipient_id : r.requester_id;
-        if (r.status === 'accepted') {
-          statusMap[otherId] = 'accepted';
-        } else if (r.status === 'pending') {
-          statusMap[otherId] = r.requester_id === currentUserId ? 'pending_sent' : 'pending_incoming';
-        }
-      });
-      setMatchStatuses(statusMap);
-    } catch (err) {
-      console.error('Failed to fetch match statuses:', err);
-    }
+      if (Array.isArray(data)) {
+        const led = data.filter(g => Number(g.leader_id) === Number(myId));
+        setMyLedGroups(led);
+        if (led.length > 0) setSelectedGroupId(led[0].id);
+      }
+    } catch (err) { console.error("Failed to fetch groups:", err); }
   }, []);
 
   const fetchRoommates = useCallback(async (currentPage, currentFilters) => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
-
     setLoading(true);
     const params = new URLSearchParams({ page: currentPage, limit: CARDS_PER_PAGE });
     Object.entries(currentFilters).forEach(([k, v]) => { if (v) params.append(k, v); });
@@ -183,11 +176,8 @@ function Browse() {
       setRoommates(data.users || []);
       setTotalPages(data.totalPages || 1);
       setTotal(data.total || 0);
-    } catch (err) {
-      console.error('Failed to fetch roommates:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error('Failed to fetch roommates:', err); }
+    finally { setLoading(false); }
   }, [navigate]);
 
   const fetchPresets = useCallback(async (token) => {
@@ -197,38 +187,34 @@ function Browse() {
       });
       const data = await res.json();
       setPresets(data.presets || []);
-    } catch (err) {
-      console.error('Failed to fetch presets:', err);
-    }
+    } catch (err) { console.error('Failed to fetch presets:', err); }
   }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    setCurrentUserId(user.id ?? null);
     fetchRoommates(page, filters);
-    fetchMatchStatuses(token, user.id);
-  }, [page, filters, fetchRoommates, fetchMatchStatuses, navigate]);
+    fetchMyGroups();
+    fetchPresets(token);
+  }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets, navigate]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) fetchPresets(token);
-  }, [fetchPresets]);
-
-  const handleSendRequest = async (recipientId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:3001/api/matches/request/${recipientId}`, {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      if (res.ok) {
-        setMatchStatuses((prev) => ({ ...prev, [recipientId]: 'pending_sent' }));
-      }
-    } catch (err) {
-      console.error('Failed to send match request:', err);
+  // YOUR INVITE LOGIC
+  const handleInvite = async (receiverId) => {
+    const token = localStorage.getItem("token");
+    if (!selectedGroupId) {
+      alert("Please create or select a group first!");
+      return;
     }
+    try {
+      const res = await fetch("http://localhost:3001/api/groups/invite", {
+        method: "POST",
+        headers: { "Content-type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ groupId: selectedGroupId, receiverId }),
+      });
+      const data = await res.json();
+      if (res.ok) alert("Match request sent successfully!");
+      else alert(data.error || "Could not send request.");
+    } catch (err) { console.error(err); }
   };
 
   const handleFilterChange = (key, value) => {
@@ -236,10 +222,7 @@ function Browse() {
     setFilters((f) => ({ ...f, [key]: value }));
   };
 
-  const clearFilters = () => {
-    setFilters(EMPTY_FILTERS);
-    setPage(1);
-  };
+  const clearFilters = () => { setFilters(EMPTY_FILTERS); setPage(1); };
 
   const handleSavePreset = async () => {
     if (!presetName.trim()) return;
@@ -250,14 +233,8 @@ function Browse() {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: presetName.trim(), filters }),
       });
-      if (res.ok) {
-        setPresetName('');
-        setShowSaveForm(false);
-        fetchPresets(token);
-      }
-    } catch (err) {
-      console.error('Failed to save preset:', err);
-    }
+      if (res.ok) { setPresetName(''); setShowSaveForm(false); fetchPresets(token); }
+    } catch (err) { console.error('Failed to save preset:', err); }
   };
 
   const handleApplyPreset = (preset) => {
@@ -273,9 +250,7 @@ function Browse() {
         headers: { Authorization: 'Bearer ' + token },
       });
       if (res.ok) fetchPresets(token);
-    } catch (err) {
-      console.error('Failed to delete preset:', err);
-    }
+    } catch (err) { console.error('Failed to delete preset:', err); }
   };
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
@@ -284,16 +259,34 @@ function Browse() {
     <div className="browse-page">
       <header className="browse-page-header">
         <div className="browse-page-header-left">
-          <div>
-            <h1 className="browse-page-title">Find Your Roommate</h1>
-            <p className="browse-page-subtitle">
-              {loading ? 'Searching...' : total + ' Bruin' + (total !== 1 ? 's' : '') + ' looking for a roommate'}
-            </p>
-          </div>
+          <h1 className="browse-page-title">Find Your Roommate</h1>
+          <p className="browse-page-subtitle">
+            {loading ? 'Searching...' : `${total} Bruin${total !== 1 ? 's' : ''} looking for a roommate`}
+          </p>
         </div>
       </header>
 
-      {/* Saved Presets Row */}
+      {/* YOUR GROUP SELECTION BAR - Styled to match Preset Chips */}
+      <div className="presets-bar" style={{ marginBottom: '10px' }}>
+        <span className="presets-label">Sending Request As:</span>
+        <div className="preset-chip">
+          <select 
+            className="preset-chip-apply" 
+            style={{ border: 'none', cursor: 'pointer' }}
+            value={selectedGroupId} 
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+          >
+            {myLedGroups.length === 0 ? (
+              <option value="">No groups lead</option>
+            ) : (
+              myLedGroups.map(g => (
+                <option key={g.id} value={g.id}>{g.group_name || `Group #${g.id}`}</option>
+              ))
+            )}
+          </select>
+        </div>
+      </div>
+
       {(presets.length > 0 || hasActiveFilters) && (
         <div className="presets-bar">
           <span className="presets-label">Presets:</span>
@@ -304,23 +297,13 @@ function Browse() {
             </div>
           ))}
           {hasActiveFilters && !showSaveForm && (
-            <button className="btn btn-ghost preset-save-btn" onClick={() => setShowSaveForm(true)}>
-              + Save current filters
-            </button>
+            <button className="preset-save-btn" onClick={() => setShowSaveForm(true)}>+ Save filters</button>
           )}
           {showSaveForm && (
             <div className="preset-save-form">
-              <input
-                className="preset-name-input"
-                type="text"
-                value={presetName}
-                onChange={(e) => setPresetName(e.target.value)}
-                placeholder="Preset name..."
-                autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSavePreset(); if (e.key === 'Escape') setShowSaveForm(false); }}
-              />
+              <input className="preset-name-input" type="text" value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="Preset name..." autoFocus />
               <button className="preset-save-confirm" onClick={handleSavePreset}>Save</button>
-              <button className="preset-save-cancel" onClick={() => { setShowSaveForm(false); setPresetName(''); }}>Cancel</button>
+              <button className="preset-save-cancel" onClick={() => setShowSaveForm(false)}>Cancel</button>
             </div>
           )}
         </div>
@@ -420,52 +403,26 @@ function Browse() {
         </div>
       </div>
 
-      {/* Cards */}
       {loading ? (
-        <div className="browse-loading">
-          <div className="loading-spinner" />
-          <p>Finding Bruins...</p>
-        </div>
+        <div className="browse-loading"><div className="loading-spinner" /><p>Finding Bruins...</p></div>
       ) : roommates.length === 0 ? (
-        <div className="browse-empty">
-          <span className="empty-icon">🐻</span>
-          <h3>No roommates found</h3>
-          <p>Try adjusting your filters or check back later.</p>
-        </div>
+        <div className="browse-empty"><span className="empty-icon">🐻</span><h3>No roommates found</h3></div>
       ) : (
         <>
           <div className="roommate-grid">
-            {roommates.filter((u) => u.user_id !== currentUserId).map((u) => (
-              <RoommateCard
-                key={u.user_id}
-                user={u}
-                matchStatus={matchStatuses[u.user_id] || null}
-                onSendRequest={handleSendRequest}
-              />
+            {roommates.map((u) => (
+              <RoommateCard key={u.user_id} user={u} onInvite={handleInvite} />
             ))}
           </div>
-
           {totalPages > 1 && (
             <div className="pagination">
-              <button className="pagination-btn"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}>
-                &#8592;
-              </button>
+              <button className="pagination-btn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>←</button>
               <div className="pagination-pages">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button key={p}
-                    className={'pagination-page' + (p === page ? ' active' : '')}
-                    onClick={() => setPage(p)}>
-                    {p}
-                  </button>
+                  <button key={p} className={'pagination-page' + (p === page ? ' active' : '')} onClick={() => setPage(p)}>{p}</button>
                 ))}
               </div>
-              <button className="pagination-btn"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}>
-                &#8594;
-              </button>
+              <button className="pagination-btn" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>→</button>
             </div>
           )}
         </>
