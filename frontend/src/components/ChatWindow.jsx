@@ -3,7 +3,9 @@ import { io } from 'socket.io-client';
 import './ChatWindow.css';
 
 const socket = io('http://localhost:3001', {
-  reconnection: false, 
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 1000,
 });
 
 function ChatWindow({ groupId, currentUser }) {
@@ -22,6 +24,12 @@ function ChatWindow({ groupId, currentUser }) {
 
   useEffect(() => {
     socket.emit('join_group', groupId);
+
+    // Rejoin the room if the socket reconnects (e.g. after a network blip)
+    const handleReconnect = () => {
+      socket.emit('join_group', groupId);
+    };
+    socket.on('reconnect', handleReconnect);
 
     const fetchHistory = async () => {
       const token = localStorage.getItem('token');
@@ -48,8 +56,8 @@ function ChatWindow({ groupId, currentUser }) {
     });
 
     return () => {
-      socket.emit('leave_group', groupId);
       socket.off('receive_message');
+      socket.off('reconnect', handleReconnect);
     };
   }, [groupId]);
 
