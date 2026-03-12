@@ -1,32 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Browse', path: '/browse' },
   { label: 'Matches', path: '/matches' },
-  { label: 'Chat', path: '/chat' }, 
-  { label: 'Notifications', path: '/notifications' },
+  { label: 'Chat', path: '/chat' },
   { label: 'Profile', path: '/profile' },
 ];
 
 function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [unreadCount, setUnreadCount] = useState(0);
     const [inviteCount, setInviteCount] = useState(0);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetch('http://localhost:3001/api/notifications', {
-      headers: { Authorization: 'Bearer ' + token },
-    })
-      .then((res) => res.json())
-      .then((data) => setUnreadCount(data.unreadCount || 0))
-      .catch(() => {});
-  }, [location.pathname]);
+    const [unreadChatCount, setUnreadChatCount] = useState(0);
+    const socketRef = useRef(null);
 
     useEffect(() => {
         const checkInvites = async () => {
@@ -58,6 +48,52 @@ function Sidebar() {
         return () => clearInterval(interval);
     }, [location.pathname]);
 
+    // Reset unread chat count when navigating to chat
+    useEffect(() => {
+        if (location.pathname.startsWith('/chat')) {
+            setUnreadChatCount(0);
+        }
+    }, [location.pathname]);
+
+    // Socket.IO: listen for new messages across all groups
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const socket = io('http://localhost:3001', { reconnection: false });
+        socketRef.current = socket;
+
+        const joinGroups = async () => {
+            try {
+                const res = await fetch("http://localhost:3001/api/groups/my-groups", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.ok) {
+                    const groups = await res.json();
+                    groups.forEach((g) => socket.emit('join_group', g.id));
+                }
+            } catch (err) {
+                console.error("Sidebar socket group join failed", err);
+            }
+        };
+
+        joinGroups();
+
+        socket.on('receive_message', (msg) => {
+            const userStr = localStorage.getItem('user');
+            const currentUser = userStr ? JSON.parse(userStr) : null;
+            const isOwnMessage = currentUser && (msg.senderId === currentUser.id || msg.sender_id === currentUser.id);
+            const onChatPage = window.location.pathname.startsWith('/chat');
+            if (!isOwnMessage && !onChatPage) {
+                setUnreadChatCount((prev) => prev + 1);
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -79,11 +115,11 @@ function Sidebar() {
                         >
                             <span className="link-text">{label}</span>
 
-                            {label === "Dashboard" && inviteCount > 0 && (
+                            {label === "Matches" && inviteCount > 0 && (
                                 <span className="nav-badge">{inviteCount}</span>
                             )}
-                            {label === 'Notifications' && unreadCount > 0 && (
-                                <span className="sidebar-notif-badge">{unreadCount}</span>
+                            {label === "Chat" && unreadChatCount > 0 && (
+                                <span className="nav-badge">{unreadChatCount}</span>
                             )}
                         </button>
                     ))}
