@@ -178,160 +178,83 @@ function Dashboard() {
 				</section>
 			)}
 
-			{!hasProfile && (
-				<section className="dashboard-card incomplete-profile">
-					<div className="incomplete-profile-text">
-						<h3>Complete your profile</h3>
-						<p>
-							Fill out your housing preferences so we can start matching you
-							with roommates.
-						</p>
-					</div>
-					<button
-						className="btn btn-primary"
-						onClick={() => navigate("/onboarding")}
-					>
-						Complete Profile
-					</button>
-				</section>
-			)}
+      {!hasProfile && (
+        <section className="dashboard-alert">
+          <div className="dashboard-alert-text">
+            <h3>Complete your profile</h3>
+            <p>Fill out your housing preferences so we can start matching you with roommates.</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
+            Complete Profile
+          </button>
+        </section>
+      )}
 
-			<section className="dashboard-card">
-				<h3>How to use Bruin Match</h3>
-				<ul>
-					<li>Create your profile with housing preferences.</li>
-					<li>Browse potential roommates based on your vibe.</li>
-					<li>Send invites to start a group.</li>
-					<li>Start chatting!</li>
-				</ul>
-			</section>
+      <div className="dashboard-grid">
+        {/* How to use */}
+        <div className="dash-note dash-note--dandelion">
+          <div className="dash-note-bar dash-bar--dandelion">
+            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+            <span className="dash-note-label">📋 How to use</span>
+          </div>
+          <div className="dash-note-body">
+            <h3>Bruin Match</h3>
+            <div className="dash-steps">
+              <div className="dash-step"><span className="dash-step-icon">✏️</span><span>Build your profile and share what matters most in a roommate.</span></div>
+              <div className="dash-step"><span className="dash-step-icon">🔍</span><span>Discover Bruins who match your lifestyle, habits, and housing needs.</span></div>
+              <div className="dash-step"><span className="dash-step-icon">💌</span><span>Invite your favorites to form your roommate group.</span></div>
+              <div className="dash-step"><span className="dash-step-icon">💬</span><span>Chat, connect, and find your perfect living match.</span></div>
+            </div>
+          </div>
+        </div>
 
-			{/* --- UPDATED GROUP SECTION --- */}
-			<section className="dashboard-card">
-				<h3>Your Roommate Groups</h3>
-				{myGroups.length === 0 ? (
-					<p style={{ color: "#64748b" }}>
-						You aren't in any groups yet. Start one or wait for an invite!
-					</p>
-				) : (
-					<div
-						style={{
-							display: "grid",
-							gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-							gap: "16px",
-						}}
-					>
-						{myGroups.map((group) => (
-							<div
-								key={group.id}
-								className="group-card"
-								style={{
-									padding: "16px",
-									border: "1px solid #e2e8f0",
-									borderRadius: "12px",
-									background: "#fff",
-								}}
-							>
-								<div style={{ marginBottom: "16px" }}>
-									<div
-										style={{
-											fontWeight: 700,
-											fontSize: "1.1rem",
-											color: "#1e293b",
-										}}
-									>
-										{group.group_name || `Unnamed Group #${group.id}`}
-									</div>
-									<div
-										style={{
-											fontSize: "0.85rem",
-											color: "#64748b",
-											marginTop: "4px",
-										}}
-									>
-										Role:{" "}
-										{group.leader_id === user.id ? "👑 Group Leader" : "Member"}
-									</div>
-								</div>
-								<button
-									className="btn btn-primary"
-									style={{ width: "100%" }}
-									onClick={() => navigate(`/chat/${group.id}`)}
-								>
-									Open Chat
-								</button>
-							</div>
-						))}
-					</div>
-				)}
-			</section>
+        {/* Find a Roommate */}
+        <div className="dash-note dash-note--navy">
+          <div className="dash-note-bar dash-bar--navy">
+            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+            <span className="dash-note-label">🔍 Browse</span>
+          </div>
+          <div className="dash-note-body">
+            <h3>Find a Roommate</h3>
+            <p>Browse Bruins looking for a roommate and filter by your preferences.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/browse')} style={{ marginTop: '12px' }}>
+              Browse Roommates
+            </button>
+          </div>
+        </div>
 
-			{/* --- REST OF YOUR ORIGINAL SECTIONS --- */}
-			<section
-				className="dashboard-card"
-				style={{
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					flexWrap: "wrap",
-					gap: "16px",
-				}}
-			>
-				<div>
-					<h3 style={{ margin: "0 0 4px" }}>Find a Roommate</h3>
-					<p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem" }}>
-						Browse Bruins looking for a roommate and filter by your preferences.
-					</p>
-				</div>
-				<button className="btn btn-primary" onClick={() => navigate("/browse")}>
-					Browse Roommates
-				</button>
-			</section>
-
-			<section className="dashboard-card">
-				<h3 style={{ margin: "0 0 8px" }}>Top Matches</h3>
-				{matchesLoading ? (
-					<p style={{ margin: 0, color: "#64748b" }}>
-						Loading ranked matches...
-					</p>
-				) : !hasProfile ? (
-					<p style={{ margin: 0, color: "#64748b" }}>
-						Complete onboarding to see personalized compatibility scores.
-					</p>
-				) : topMatches.length === 0 ? (
-					<p style={{ margin: 0, color: "#64748b" }}>
-						No matches found yet. Try broadening filters in Browse.
-					</p>
-				) : (
-					<div style={{ display: "grid", gap: "10px" }}>
-						{topMatches.map((match) => (
-							<div
-								key={match.user_id}
-								style={{
-									border: "1px solid #e2e8f0",
-									borderRadius: "12px",
-									padding: "10px 12px",
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-								}}
-							>
-								<div>
-									<div style={{ fontWeight: 600 }}>{match.full_name}</div>
-									<div style={{ color: "#64748b", fontSize: "0.9rem" }}>
-										{match.major} · {match.room_type}
-									</div>
-								</div>
-								<div style={{ color: "#1d4ed8", fontWeight: 700 }}>
-									{match.compatibility_score ?? 0}%
-								</div>
-							</div>
-						))}
-					</div>
-				)}
-			</section>
-		</div>
-	);
+        {/* Top Matches */}
+        <div className="dash-note dash-note--strawberry">
+          <div className="dash-note-bar dash-bar--strawberry">
+            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+            <span className="dash-note-label">⭐ Top Matches</span>
+          </div>
+          <div className="dash-note-body">
+            <h3>Top Matches</h3>
+            {matchesLoading ? (
+              <p className="dash-note-muted">Loading ranked matches...</p>
+            ) : !hasProfile ? (
+              <p className="dash-note-muted">Complete onboarding to see personalized compatibility scores.</p>
+            ) : topMatches.length === 0 ? (
+              <p className="dash-note-muted">No matches found yet. Try broadening filters in Browse.</p>
+            ) : (
+              <div className="dash-matches-list">
+                {topMatches.map((match) => (
+                  <div key={match.user_id} className="dash-match-row">
+                    <div>
+                      <div className="dash-match-name">{match.full_name}</div>
+                      <div className="dash-match-sub">{match.major} · {match.room_type}</div>
+                    </div>
+                    <div className="dash-match-score">{match.compatibility_score ?? 0}%</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Dashboard;

@@ -66,7 +66,7 @@ function Sidebar() {
 	return (
 		<aside className="sidebar">
 			<div className="sidebar-top">
-				<span className="sidebar-brand">Bruin Match</span>
+				<span className="sidebar-brand-text">BruinMatch</span>
 				<nav className="sidebar-nav">
 					{NAV_ITEMS.map(({ label, path }) => (
 						<button

@@ -82,7 +82,22 @@ function RoommateCard({ user, onInvite }) {
           <span className="card-tag card-tag--room">{user.room_type}</span>
           <span className="card-tag card-tag--term">{user.move_in_term}</span>
         </div>
+        <div className="card-tags">
+          <span className="card-tag card-tag--housing">{user.housing_type}</span>
+          <span className="card-tag card-tag--room">{user.room_type}</span>
+          <span className="card-tag card-tag--term">{user.move_in_term}</span>
+        </div>
 
+        <div className="card-prefs">
+          <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🌡️</span><span>{user.thermostat_temp}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🔊</span><span>{user.noise_tolerance}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🚪</span><span>{user.guest_policy}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🧼</span><span>{user.cleanliness_level}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🛏️</span><span>{user.overnight_guest_frequency}</span></div>
+          <div className="card-pref-row"><span className="pref-icon">🤝</span><span>{user.conflict_style}</span></div>
+        </div>
         <div className="card-prefs">
           <div className="card-pref-row"><span className="pref-icon">🌙</span><span>{user.sleep_time}</span></div>
           <div className="card-pref-row"><span className="pref-icon">☀️</span><span>{user.wake_time}</span></div>
@@ -292,53 +307,96 @@ function Browse() {
         </div>
       )}
 
+      {/* Filters — browser window style */}
       <div className="filter-window">
         <div className="filter-window-titlebar">
-          <div className="filter-window-dots"><span className="dot dot-red" /><span className="dot dot-yellow" /><span className="dot dot-green" /></div>
+          <div className="filter-window-dots">
+            <span className="dot dot-red" />
+            <span className="dot dot-yellow" />
+            <span className="dot dot-green" />
+          </div>
           <span className="filter-window-title">🔍 Filter Roommates</span>
-          {hasActiveFilters && <button className="filter-clear-btn" onClick={clearFilters}>✕ Clear</button>}
+          {hasActiveFilters && (
+            <button className="filter-clear-btn" onClick={clearFilters}>✕ Clear</button>
+          )}
         </div>
         <div className="filter-window-urlbar">
           <span className="urlbar-icon">🌐</span>
-          <input className="urlbar-input" type="text" value={filters.query} onChange={(e) => handleFilterChange('query', e.target.value)} placeholder="Search name, major, room type..." />
+          <input
+            className="urlbar-input"
+            type="text"
+            value={filters.query}
+            onChange={(e) => handleFilterChange('query', e.target.value)}
+            placeholder="https://bruinmatch.ucla.edu/search..."
+          />
         </div>
         <div className="filter-window-body">
-          <input className="filter-chip" type="text" value={filters.major} onChange={(e) => handleFilterChange('major', e.target.value)} placeholder="🎓 Major" />
-          <select className="filter-chip" value={filters.academic_year} onChange={(e) => handleFilterChange('academic_year', e.target.value)}>
+          <input
+            className="filter-chip"
+            type="text"
+            value={filters.major}
+            onChange={(e) => handleFilterChange('major', e.target.value)}
+            placeholder="🎓 Major"
+          />
+          <select className="filter-chip" value={filters.academic_year}
+            onChange={(e) => handleFilterChange('academic_year', e.target.value)}>
             <option value="">📚 All Years</option>
-            {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            {ACADEMIC_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
-          <select className="filter-chip" value={filters.housing_type} onChange={(e) => handleFilterChange('housing_type', e.target.value)}>
+          <select className="filter-chip" value={filters.housing_type}
+            onChange={(e) => handleFilterChange('housing_type', e.target.value)}>
             <option value="">🏠 All Housing</option>
-            {HOUSING_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
+            {HOUSING_TYPES.map((h) => <option key={h} value={h}>{h}</option>)}
           </select>
-          <select className="filter-chip" value={filters.room_type} onChange={(e) => handleFilterChange('room_type', e.target.value)}>
+          <select className="filter-chip" value={filters.room_type}
+            onChange={(e) => handleFilterChange('room_type', e.target.value)}>
             <option value="">🛏️ All Rooms</option>
-            {ROOM_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
+            {ROOM_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <select className="filter-chip" value={filters.move_in_term} onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
+          <select className="filter-chip" value={filters.move_in_term}
+            onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
             <option value="">📅 All Terms</option>
-            {MOVE_IN_TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+            {MOVE_IN_TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select className="filter-chip" value={filters.sleep_time} onChange={(e) => handleFilterChange('sleep_time', e.target.value)}>
+          <select className="filter-chip" value={filters.sleep_time}
+            onChange={(e) => handleFilterChange('sleep_time', e.target.value)}>
             <option value="">🌙 Bedtime</option>
-            {SLEEP_TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+            {SLEEP_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select className="filter-chip" value={filters.cleanliness_level} onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
-            <option value="">🧼 Clean</option>
-            {CLEANLINESS_LEVELS.map(c => <option key={c} value={c}>{c}</option>)}
+          <select className="filter-chip" value={filters.guest_policy}
+            onChange={(e) => handleFilterChange('guest_policy', e.target.value)}>
+            <option value="">🚪 Guests</option>
+            {GUEST_POLICIES.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
-          <select className="filter-chip" value={filters.noise_tolerance} onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
+          <select className="filter-chip" value={filters.noise_tolerance}
+            onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
             <option value="">🔊 Noise</option>
-            {NOISE_TOLERANCES.map(o => <option key={o} value={o}>{o}</option>)}
+            {NOISE_TOLERANCES.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
-          <select className="filter-chip" value={filters.social_energy} onChange={(e) => handleFilterChange('social_energy', e.target.value)}>
+          <select className="filter-chip" value={filters.thermostat_temp}
+            onChange={(e) => handleFilterChange('thermostat_temp', e.target.value)}>
+            <option value="">🌡️ Temp</option>
+            {THERMOSTAT_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="filter-chip" value={filters.cleanliness_level}
+            onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
+            <option value="">🧼 Clean</option>
+            {CLEANLINESS_LEVELS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="filter-chip" value={filters.overnight_guest_frequency}
+            onChange={(e) => handleFilterChange('overnight_guest_frequency', e.target.value)}>
+            <option value="">🛏️ Overnight</option>
+            {OVERNIGHT_GUEST_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="filter-chip" value={filters.social_energy}
+            onChange={(e) => handleFilterChange('social_energy', e.target.value)}>
             <option value="">🤝 Social</option>
-            {SOCIAL_ENERGIES.map(s => <option key={s} value={s}>{s}</option>)}
+            {SOCIAL_ENERGIES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select className="filter-chip" value={filters.conflict_style} onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
+          <select className="filter-chip" value={filters.conflict_style}
+            onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
             <option value="">💬 Conflict</option>
-            {CONFLICT_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+            {CONFLICT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
       </div>
