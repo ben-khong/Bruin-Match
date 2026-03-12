@@ -35,7 +35,7 @@ A full-stack web application for UCLA students to find and connect with compatib
 bruin-match/
 ├── setup.sh                        # One-command setup and launch script
 ├── backend/
-│   ├── .env                        # Environment variables — see below
+│   ├── .env                        # Environment variables (do not commit) — see below
 │   ├── server.js                   # Express app entry point
 │   ├── schema.sql                  # Full database schema (all 8 tables)
 │   ├── config/
@@ -165,7 +165,7 @@ cd ../frontend && npm install
 
 ```bash
 cd bruin-match/backend
-node start
+npm start
 # Server running on http://localhost:3001
 ```
 
