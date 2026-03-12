@@ -40,15 +40,16 @@ function Chat() {
   }, [groupId, navigate, userData]);
 
   if (loading) {
-    return <div style={{ padding: '20px' }}>Loading Conversations...</div>;
+    return <div style={{ padding: '20px', fontFamily: 'var(--font-body)', color: 'var(--navy)' }}>Loading Conversations...</div>;
   }
 
   if (myGroups.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>No active chats</h2>
-        <p>Join a group to start chatting!</p>
-        <button onClick={() => navigate('/browse')}>Find Roommates</button>
+      <div style={{ padding: '48px', textAlign: 'center', color: '#5a6180' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
+        <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--navy)', margin: '0 0 8px' }}>No active chats</h2>
+        <p style={{ margin: '0 0 20px', fontSize: '0.95rem' }}>Join a group to start chatting!</p>
+        <button className="btn btn-primary" onClick={() => navigate('/browse')}>Find Roommates</button>
       </div>
     );
   }
@@ -56,39 +57,53 @@ function Chat() {
   const currentGroup = myGroups.find(g => String(g.id) === String(groupId));
 
   return (
-    <div className="chat-page-main" style={{ 
-      display: 'flex', 
+    <div style={{
+      display: 'flex',
       height: 'calc(100vh - 40px)',
-      backgroundColor: '#f8fafc', 
-      padding: '20px', 
-      gap: '20px' 
+      padding: '24px 32px',
+      gap: '20px',
     }}>
-      
-      <aside style={{ 
-        width: '250px', 
-        backgroundColor: 'white', 
-        borderRadius: '12px', 
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        overflow: 'hidden' 
+
+      <aside style={{
+        width: '240px',
+        background: 'var(--ivory)',
+        borderRadius: '12px',
+        boxShadow: '2px 3px 12px rgba(63,73,165,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        borderTop: '4px solid var(--dandelion)',
       }}>
-        <header style={{ padding: '15px 20px', borderBottom: '1px solid #e2e8f0', background: '#f1f5f9' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>Conversations</h3>
+        <header style={{
+          padding: '14px 18px',
+          borderBottom: '1px solid rgba(63,73,165,0.1)',
+          background: 'var(--dandelion)',
+        }}>
+          <h3 style={{
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.88rem',
+            fontWeight: '700',
+            color: 'var(--navy)',
+          }}>Conversations</h3>
         </header>
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
           {myGroups.map(g => (
-            <div 
-              key={g.id} 
+            <div
+              key={g.id}
               onClick={() => navigate(`/chat/${g.id}`)}
               style={{
-                padding: '12px 15px',
+                padding: '10px 14px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                marginBottom: '8px',
-                backgroundColor: String(groupId) === String(g.id) ? '#dbeafe' : 'transparent',
-                color: String(groupId) === String(g.id) ? '#1e40af' : '#475569',
+                marginBottom: '6px',
+                fontFamily: 'var(--font-display)',
+                fontSize: '0.92rem',
+                backgroundColor: String(groupId) === String(g.id) ? 'var(--dandelion-light)' : 'transparent',
+                color: 'var(--navy)',
                 fontWeight: String(groupId) === String(g.id) ? '700' : '500',
+                borderLeft: String(groupId) === String(g.id) ? '3px solid var(--dandelion)' : '3px solid transparent',
+                transition: 'background 0.15s',
               }}
             >
               {g.group_name}
@@ -97,22 +112,46 @@ function Chat() {
         </div>
       </aside>
 
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        backgroundColor: 'white', 
-        borderRadius: '12px', 
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', 
-        overflow: 'hidden' 
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--ivory)',
+        borderRadius: '12px',
+        boxShadow: '2px 3px 12px rgba(63,73,165,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+        overflow: 'hidden',
+        borderTop: '4px solid var(--navy)',
       }}>
-        <header style={{ padding: '15px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+        <header style={{
+          padding: '14px 20px',
+          borderBottom: '1px solid rgba(63,73,165,0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: 'var(--navy)',
+        }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.1rem' }}>{currentGroup?.group_name}</h2>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>Room ID: {groupId}</p>
+            <h2 style={{
+              margin: 0,
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.1rem',
+              fontWeight: '700',
+              color: '#ffffff',
+            }}>{currentGroup?.group_name}</h2>
           </div>
-          <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: '#1d4ed8', cursor: 'pointer', fontWeight: '600' }}>
-            Back to Dashboard
+          <button onClick={() => navigate('/dashboard')} style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            color: '#ffffff',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.85rem',
+            padding: '6px 14px',
+            borderRadius: '8px',
+            transition: 'background 0.15s',
+          }}>
+            ← Dashboard
           </button>
         </header>
 
