@@ -11,12 +11,38 @@ export const HOUSING_TYPES = [
   'Off-Campus Apartments',
 ];
 
+export const ROOM_TYPES_BY_HOUSING = {
+  'On-Campus Residence Halls': [
+    'Classic Residence Hall - Double & Triple',
+    'Deluxe Residence Hall - Double & Triple',
+    'Plaza Residences - Double & Triple',
+    'Suites - Double & Triple',
+  ],
+  'University Apartments': [
+    'Gayley Court',
+    'Gayley Towers',
+    'Glenrock',
+    'Glenrock West',
+    'Landfair',
+    'Landfair Vista',
+    'Levering Terrace',
+    'Westwood Chateau',
+    'Westwood Palm',
+  ],
+  'Off-Campus Apartments': [
+    'Off-Campus (looking for roommate)',
+  ],
+};
+
 export const ROOM_TYPES = [
-  'Classic Residence Hall - Double & Triple',
-  'Deluxe Residence Hall - Double & Triple',
-  'Plaza Residences - Double & Triple',
-  'Suites - Double & Triple',
+  ...ROOM_TYPES_BY_HOUSING['On-Campus Residence Halls'],
+  ...ROOM_TYPES_BY_HOUSING['University Apartments'],
+  ...ROOM_TYPES_BY_HOUSING['Off-Campus Apartments'],
 ];
+
+export function getRoomTypesForHousing(housingType) {
+  return ROOM_TYPES_BY_HOUSING[housingType] || ROOM_TYPES;
+}
 
 export const MOVE_IN_TERMS = [
   'Fall 2025',

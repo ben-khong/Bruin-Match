@@ -5,6 +5,7 @@ import {
   GENDERS,
   HOUSING_TYPES,
   ROOM_TYPES,
+  getRoomTypesForHousing,
   MOVE_IN_TERMS,
   SLEEP_TIMES,
   WAKE_TIMES,
@@ -306,7 +307,7 @@ function Onboarding() {
               <select className="auth-input" value={form.room_type}
                 onChange={(e) => update('room_type', e.target.value)}>
                 <option value="">Select room type</option>
-                {ROOM_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
+                {getRoomTypesForHousing(form.housing_type).map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
               {form.room_type && ROOM_TYPE_DETAILS[form.room_type] && (
                 <p style={{ marginTop: '8px', color: '#475569', fontSize: '0.92rem' }}>

@@ -6,6 +6,7 @@ import {
   GENDERS,
   HOUSING_TYPES,
   ROOM_TYPES,
+  getRoomTypesForHousing,
   MOVE_IN_TERMS,
   SLEEP_TIMES,
   WAKE_TIMES,
@@ -347,7 +348,7 @@ function Profile() {
             <div className="profile-edit-grid">
               <EditField label="Housing Type">
                 <select className="profile-input" value={editForm.housing_type}
-                  onChange={(e) => update('housing_type', e.target.value)}>
+                  onChange={(e) => { update('housing_type', e.target.value); update('room_type', ''); }}>
                   <option value="">Select housing type</option>
                   {HOUSING_TYPES.map((h) => <option key={h} value={h}>{h}</option>)}
                 </select>
@@ -357,7 +358,7 @@ function Profile() {
                 <select className="profile-input" value={editForm.room_type}
                   onChange={(e) => update('room_type', e.target.value)}>
                   <option value="">Select room type</option>
-                  {ROOM_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {getRoomTypesForHousing(editForm.housing_type).map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </EditField>
 

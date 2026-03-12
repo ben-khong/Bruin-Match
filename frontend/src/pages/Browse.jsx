@@ -5,6 +5,7 @@ import {
   ACADEMIC_YEARS,
   HOUSING_TYPES,
   ROOM_TYPES,
+  getRoomTypesForHousing,
   MOVE_IN_TERMS,
   SLEEP_TIMES,
   THERMOSTAT_PREFERENCES,
@@ -362,14 +363,14 @@ function Browse() {
             {ACADEMIC_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
           <select className="filter-chip" value={filters.housing_type}
-            onChange={(e) => handleFilterChange('housing_type', e.target.value)}>
+            onChange={(e) => { handleFilterChange('housing_type', e.target.value); handleFilterChange('room_type', ''); }}>
             <option value="">🏠 All Housing</option>
             {HOUSING_TYPES.map((h) => <option key={h} value={h}>{h}</option>)}
           </select>
           <select className="filter-chip" value={filters.room_type}
             onChange={(e) => handleFilterChange('room_type', e.target.value)}>
             <option value="">🛏️ All Rooms</option>
-            {ROOM_TYPES.map((r) => <option key={r} value={r}>{r}</option>)}
+            {getRoomTypesForHousing(filters.housing_type).map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <select className="filter-chip" value={filters.move_in_term}
             onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
