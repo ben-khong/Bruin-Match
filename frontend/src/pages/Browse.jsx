@@ -7,6 +7,7 @@ import {
   ROOM_TYPES,
   getRoomTypesForHousing,
   MOVE_IN_TERMS,
+  WAKE_TIMES,
   SLEEP_TIMES,
   THERMOSTAT_PREFERENCES,
   CLEANLINESS_LEVELS,
@@ -26,6 +27,7 @@ const EMPTY_FILTERS = {
   housing_type: '',
   room_type: '',
   move_in_term: '',
+  wake_time: '',
   sleep_time: '',
   guest_policy: '',
   noise_tolerance: '',
@@ -35,6 +37,44 @@ const EMPTY_FILTERS = {
   social_energy: '',
   conflict_style: '',
 };
+
+function FilterGroup({ label, children }) {
+  return (
+    <div className="filter-group">
+      <span className="filter-group-label">{label}</span>
+      <div className="filter-group-pills">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function FilterPill({ value, onChange, options, placeholder }) {
+  const isActive = Boolean(value);
+  return (
+    <div className={`filter-pill-wrapper${isActive ? ' filter-pill-wrapper--active' : ''}`}>
+      <select
+        className={`filter-pill${isActive ? ' filter-pill--active' : ''}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+      {isActive && (
+        <button
+          className="filter-pill-clear"
+          onClick={() => onChange('')}
+          title="Clear filter"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
+}
 
 function RoommateCard({ user, onInvite }) {
   const initials = user.full_name
@@ -53,10 +93,6 @@ function RoommateCard({ user, onInvite }) {
         </div>
         <span className="card-titlebar-name">{user.full_name}</span>
         <span className="card-titlebar-score">{user.compatibility_score ?? 0}%</span>
-      </div>
-      <div className="card-urlbar">
-        <span className="urlbar-icon">🌐</span>
-        <span className="card-urlbar-text">bruinmatch.ucla.edu/{user.full_name.toLowerCase().replace(/\s+/g, '-')}</span>
       </div>
       <div className="card-body">
         <div className="card-header">
@@ -116,23 +152,22 @@ function Browse() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [currentUserId, setCurrentUserId] = useState(null);
 
   const [myLedGroups, setMyLedGroups] = useState([]);
-  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState('');
   const [presets, setPresets] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [presetName, setPresetName] = useState('');
 
   const fetchMyGroups = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    const userData = JSON.parse(localStorage.getItem("user") || '{}');
+    const token = localStorage.getItem('token');
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
     const myId = userData.id || userData.userId;
     if (!token || !myId) return;
 
     try {
       const res = await fetch('http://localhost:3001/api/groups/my-groups', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -140,7 +175,7 @@ function Browse() {
         setMyLedGroups(led);
         if (led.length > 0) setSelectedGroupId(led[0].id);
       }
-    } catch (err) { console.error("Failed to fetch groups:", err); }
+    } catch (err) { console.error('Failed to fetch groups:', err); }
   }, []);
 
   const fetchRoommates = useCallback(async (currentPage, currentFilters) => {
@@ -181,20 +216,20 @@ function Browse() {
   }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets, navigate]);
 
   const handleInvite = async (receiverId) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (!selectedGroupId) {
-      alert("Please create or select a group first!");
+      alert('Please create or select a group first!');
       return;
     }
     try {
-      const res = await fetch("http://localhost:3001/api/groups/invite", {
-        method: "POST",
-        headers: { "Content-type": "application/json", Authorization: `Bearer ${token}` },
+      const res = await fetch('http://localhost:3001/api/groups/invite', {
+        method: 'POST',
+        headers: { 'Content-type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ groupId: selectedGroupId, receiverId }),
       });
       const data = await res.json();
-      if (res.ok) alert("Match request sent successfully!");
-      else alert(data.error || "Could not send request.");
+      if (res.ok) alert('Match request sent successfully!');
+      else alert(data.error || 'Could not send request.');
     } catch (err) { console.error(err); }
   };
 
@@ -247,18 +282,18 @@ function Browse() {
         </div>
       </header>
 
-      {/* YOUR GROUP SELECTION BAR - Styled to match Preset Chips */}
+      {/* Group selection bar */}
       <div className="presets-bar" style={{ marginBottom: '10px' }}>
         <span className="presets-label">Sending Request As:</span>
         <div className="preset-chip">
-          <select 
-            className="preset-chip-apply" 
+          <select
+            className="preset-chip-apply"
             style={{ border: 'none', cursor: 'pointer' }}
-            value={selectedGroupId} 
+            value={selectedGroupId}
             onChange={(e) => setSelectedGroupId(e.target.value)}
           >
             {myLedGroups.length === 0 ? (
-              <option value="">No groups lead</option>
+              <option value="">No groups led</option>
             ) : (
               myLedGroups.map(g => (
                 <option key={g.id} value={g.id}>{g.group_name || `Group #${g.id}`}</option>
@@ -290,7 +325,7 @@ function Browse() {
         </div>
       )}
 
-      {/* Filters — browser window style */}
+      {/* Filters */}
       <div className="filter-window">
         <div className="filter-window-titlebar">
           <div className="filter-window-dots">
@@ -298,89 +333,110 @@ function Browse() {
             <span className="dot dot-yellow" />
             <span className="dot dot-green" />
           </div>
-          <span className="filter-window-title">🔍 Filter Roommates</span>
+          <span className="filter-window-title">Filter Roommates</span>
           {hasActiveFilters && (
-            <button className="filter-clear-btn" onClick={clearFilters}>✕ Clear</button>
+            <button className="filter-clear-btn" onClick={clearFilters}>✕ Clear all</button>
           )}
         </div>
+
         <div className="filter-window-urlbar">
-          <span className="urlbar-icon">🌐</span>
+          <span className="urlbar-icon">🔍</span>
           <input
             className="urlbar-input"
             type="text"
             value={filters.query}
             onChange={(e) => handleFilterChange('query', e.target.value)}
-            placeholder="https://bruinmatch.ucla.edu/search..."
+            placeholder="Search by name, major, or housing type..."
           />
         </div>
+
         <div className="filter-window-body">
-          <input
-            className="filter-chip"
-            type="text"
-            value={filters.major}
-            onChange={(e) => handleFilterChange('major', e.target.value)}
-            placeholder="🎓 Major"
-          />
-          <select className="filter-chip" value={filters.academic_year}
-            onChange={(e) => handleFilterChange('academic_year', e.target.value)}>
-            <option value="">📚 All Years</option>
-            {ACADEMIC_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.housing_type}
-            onChange={(e) => { handleFilterChange('housing_type', e.target.value); handleFilterChange('room_type', ''); }}>
-            <option value="">🏠 All Housing</option>
-            {HOUSING_TYPES.map((h) => <option key={h} value={h}>{h}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.room_type}
-            onChange={(e) => handleFilterChange('room_type', e.target.value)}>
-            <option value="">🛏️ All Rooms</option>
-            {getRoomTypesForHousing(filters.housing_type).map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.move_in_term}
-            onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
-            <option value="">📅 All Terms</option>
-            {MOVE_IN_TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.sleep_time}
-            onChange={(e) => handleFilterChange('sleep_time', e.target.value)}>
-            <option value="">🌙 Bedtime</option>
-            {SLEEP_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.guest_policy}
-            onChange={(e) => handleFilterChange('guest_policy', e.target.value)}>
-            <option value="">🚪 Guests</option>
-            {GUEST_POLICIES.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.noise_tolerance}
-            onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
-            <option value="">🔊 Noise</option>
-            {NOISE_TOLERANCES.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.thermostat_temp}
-            onChange={(e) => handleFilterChange('thermostat_temp', e.target.value)}>
-            <option value="">🌡️ Temp</option>
-            {THERMOSTAT_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.cleanliness_level}
-            onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
-            <option value="">🧼 Clean</option>
-            {CLEANLINESS_LEVELS.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.overnight_guest_frequency}
-            onChange={(e) => handleFilterChange('overnight_guest_frequency', e.target.value)}>
-            <option value="">🛏️ Overnight</option>
-            {OVERNIGHT_GUEST_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.social_energy}
-            onChange={(e) => handleFilterChange('social_energy', e.target.value)}>
-            <option value="">🤝 Social</option>
-            {SOCIAL_ENERGIES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.conflict_style}
-            onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
-            <option value="">💬 Conflict</option>
-            {CONFLICT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <FilterGroup label="Housing">
+            <FilterPill
+              value={filters.academic_year}
+              onChange={(v) => handleFilterChange('academic_year', v)}
+              options={ACADEMIC_YEARS}
+              placeholder="Year"
+            />
+            <FilterPill
+              value={filters.housing_type}
+              onChange={(v) => { handleFilterChange('housing_type', v); handleFilterChange('room_type', ''); }}
+              options={HOUSING_TYPES}
+              placeholder="Housing Type"
+            />
+            <FilterPill
+              value={filters.room_type}
+              onChange={(v) => handleFilterChange('room_type', v)}
+              options={getRoomTypesForHousing(filters.housing_type)}
+              placeholder="Room Type"
+            />
+            <FilterPill
+              value={filters.move_in_term}
+              onChange={(v) => handleFilterChange('move_in_term', v)}
+              options={MOVE_IN_TERMS}
+              placeholder="Move-in Term"
+            />
+          </FilterGroup>
+
+          <FilterGroup label="Schedule">
+            <FilterPill
+              value={filters.wake_time}
+              onChange={(v) => handleFilterChange('wake_time', v)}
+              options={WAKE_TIMES}
+              placeholder="Wake-up Time"
+            />
+            <FilterPill
+              value={filters.sleep_time}
+              onChange={(v) => handleFilterChange('sleep_time', v)}
+              options={SLEEP_TIMES}
+              placeholder="Bedtime"
+            />
+          </FilterGroup>
+
+          <FilterGroup label="Living Style">
+            <FilterPill
+              value={filters.noise_tolerance}
+              onChange={(v) => handleFilterChange('noise_tolerance', v)}
+              options={NOISE_TOLERANCES}
+              placeholder="Noise Level"
+            />
+            <FilterPill
+              value={filters.guest_policy}
+              onChange={(v) => handleFilterChange('guest_policy', v)}
+              options={GUEST_POLICIES}
+              placeholder="Guests"
+            />
+            <FilterPill
+              value={filters.overnight_guest_frequency}
+              onChange={(v) => handleFilterChange('overnight_guest_frequency', v)}
+              options={OVERNIGHT_GUEST_OPTIONS}
+              placeholder="Overnight Guests"
+            />
+            <FilterPill
+              value={filters.cleanliness_level}
+              onChange={(v) => handleFilterChange('cleanliness_level', v)}
+              options={CLEANLINESS_LEVELS}
+              placeholder="Cleanliness"
+            />
+            <FilterPill
+              value={filters.thermostat_temp}
+              onChange={(v) => handleFilterChange('thermostat_temp', v)}
+              options={THERMOSTAT_PREFERENCES}
+              placeholder="Temperature"
+            />
+            <FilterPill
+              value={filters.social_energy}
+              onChange={(v) => handleFilterChange('social_energy', v)}
+              options={SOCIAL_ENERGIES}
+              placeholder="Social Style"
+            />
+            <FilterPill
+              value={filters.conflict_style}
+              onChange={(v) => handleFilterChange('conflict_style', v)}
+              options={CONFLICT_STYLES}
+              placeholder="Conflict Style"
+            />
+          </FilterGroup>
         </div>
       </div>
 
