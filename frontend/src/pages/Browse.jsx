@@ -35,25 +35,10 @@ const EMPTY_FILTERS = {
   conflict_style: '',
 };
 
-function RoommateCard({ user, onInvite, matchStatus, onSendRequest }) {
+function RoommateCard({ user, onInvite }) {
   const initials = user.full_name
     ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
-
-  let matchBtn = null;
-  if (matchStatus === 'accepted') {
-    matchBtn = <button className="match-btn match-btn--matched" disabled>Matched</button>;
-  } else if (matchStatus === 'pending_sent') {
-    matchBtn = <button className="match-btn match-btn--pending" disabled>Request Sent</button>;
-  } else if (matchStatus === 'pending_incoming') {
-    matchBtn = <button className="match-btn match-btn--incoming" disabled>Incoming Request</button>;
-  } else {
-    matchBtn = (
-      <button className="match-btn match-btn--send" onClick={() => onSendRequest(user.user_id)}>
-        Send Match Request
-      </button>
-    );
-  }
 
   const factors = user.matched_factors || [];
 
@@ -113,12 +98,9 @@ function RoommateCard({ user, onInvite, matchStatus, onSendRequest }) {
             <span className="card-contact-label">Contact:</span>
             <span className="card-contact">{user.contact_info}</span>
           </div>
-          <div className="card-button-stack">
-            <button className="btn btn-primary btn-full" onClick={() => onInvite(user.user_id)}>
-              Invite to Group
-            </button>
-            {matchBtn}
-          </div>
+          <button className="btn btn-primary btn-full" onClick={() => onInvite(user.user_id)}>
+             Send Match Request
+          </button>
         </div>
       </div>
     </div>
@@ -132,7 +114,6 @@ function Browse() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [matchStatuses, setMatchStatuses] = useState({});
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [myLedGroups, setMyLedGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
@@ -156,24 +137,6 @@ function Browse() {
         setMyLedGroups(led);
         if (led.length > 0) setSelectedGroupId(led[0].id);
       }
-    } catch (err) { console.error(err); }
-  }, []);
-
-  const fetchMatchStatuses = useCallback(async (token, currentUserId) => {
-    try {
-      const res = await fetch('http://localhost:3001/api/matches/status', {
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      const data = await res.json();
-      const statusMap = {};
-      (data.requests || []).forEach((r) => {
-        const otherId = r.requester_id === currentUserId ? r.recipient_id : r.requester_id;
-        if (r.status === 'accepted') statusMap[otherId] = 'accepted';
-        else if (r.status === 'pending') {
-          statusMap[otherId] = r.requester_id === currentUserId ? 'pending_sent' : 'pending_incoming';
-        }
-      });
-      setMatchStatuses(statusMap);
     } catch (err) { console.error(err); }
   }, []);
 
@@ -207,15 +170,10 @@ function Browse() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const myId = user.id || user.userId;
     fetchRoommates(page, filters);
     fetchMyGroups();
-    if (token && myId) {
-      fetchMatchStatuses(token, myId);
-      fetchPresets(token);
-    }
-  }, [page, filters, fetchRoommates, fetchMyGroups, fetchMatchStatuses, fetchPresets]);
+    if (token) fetchPresets(token);
+  }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets]);
 
   const handleFilterChange = (key, value) => { setPage(1); setFilters(f => ({ ...f, [key]: value })); };
   const clearFilters = () => { setFilters(EMPTY_FILTERS); setPage(1); };
@@ -231,20 +189,9 @@ function Browse() {
         body: JSON.stringify({ groupId: selectedGroupId, receiverId }),
       });
       const data = await res.json();
-      alert(res.ok ? "Invite sent!" : data.error);
+      alert(res.ok ? "Match request sent successfully!" : data.error);
     } catch (err) { console.error(err); }
     finally { setIsInviting(false); }
-  };
-
-  const handleSendRequest = async (recipientId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:3001/api/matches/request/${recipientId}`, {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      if (res.ok) setMatchStatuses(prev => ({ ...prev, [recipientId]: 'pending_sent' }));
-    } catch (err) { console.error(err); }
   };
 
   const handleSavePreset = async () => {
@@ -272,15 +219,15 @@ function Browse() {
       </header>
 
       {/* Inviting To Bar */}
-      <div className="invite-selection-container">
-        <span className="invite-label-text">Inviting to:</span>
-        <select className="filter-chip" value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)}>
+      <div className="invite-selection-bar">
+        <span className="invite-label">Requesting as group:</span>
+        <select className="invite-select" value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)}>
           {myLedGroups.length === 0 ? <option value="">No groups created yet</option> : 
            myLedGroups.map(g => <option key={g.id} value={g.id}>{g.group_name || `Group #${g.id}`}</option>)}
         </select>
       </div>
 
-      {/* Presets */}
+      {/* Saved Presets */}
       {(presets.length > 0 || hasActiveFilters) && (
         <div className="presets-bar">
           <span className="presets-label">Presets:</span>
@@ -294,7 +241,7 @@ function Browse() {
               }}>×</button>
             </div>
           ))}
-          {hasActiveFilters && !showSaveForm && <button className="btn btn-ghost" onClick={() => setShowSaveForm(true)}>+ Save filters</button>}
+          {hasActiveFilters && !showSaveForm && <button className="preset-save-trigger" onClick={() => setShowSaveForm(true)}>+ Save current filters</button>}
           {showSaveForm && (
             <div className="preset-save-form">
               <input type="text" value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="Name..." />
@@ -313,42 +260,44 @@ function Browse() {
         </div>
         <div className="filter-window-urlbar">
           <span className="urlbar-icon">🌐</span>
-          <input className="urlbar-input" type="text" value={filters.query} onChange={(e) => handleFilterChange('query', e.target.value)} placeholder="Search..." />
+          <input className="urlbar-input" type="text" value={filters.query} onChange={(e) => handleFilterChange('query', e.target.value)} placeholder="Search name, major, room type..." />
         </div>
         <div className="filter-window-body">
-          <input className="filter-chip" type="text" value={filters.major} onChange={(e) => handleFilterChange('major', e.target.value)} placeholder="🎓 Major" />
-          <select className="filter-chip" value={filters.academic_year} onChange={(e) => handleFilterChange('academic_year', e.target.value)}>
-            <option value="">📚 All Years</option>
-            {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.housing_type} onChange={(e) => handleFilterChange('housing_type', e.target.value)}>
-            <option value="">🏠 Housing</option>
-            {HOUSING_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.room_type} onChange={(e) => handleFilterChange('room_type', e.target.value)}>
-            <option value="">🛏️ Room Type</option>
-            {ROOM_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.move_in_term} onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
-            <option value="">📅 Term</option>
-            {MOVE_IN_TERMS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.sleep_time} onChange={(e) => handleFilterChange('sleep_time', e.target.value)}>
-            <option value="">🌙 Bedtime</option>
-            {SLEEP_TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.cleanliness_level} onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
-            <option value="">🧼 Cleanliness</option>
-            {CLEANLINESS_LEVELS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.noise_tolerance} onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
-            <option value="">🔊 Noise</option>
-            {NOISE_TOLERANCES.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-          <select className="filter-chip" value={filters.conflict_style} onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
-            <option value="">💬 Conflict</option>
-            {CONFLICT_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div className="filter-chips-container">
+            <input className="filter-chip-input" type="text" value={filters.major} onChange={(e) => handleFilterChange('major', e.target.value)} placeholder="🎓 Major" />
+            <select className="filter-chip-select" value={filters.academic_year} onChange={(e) => handleFilterChange('academic_year', e.target.value)}>
+              <option value="">📚 All Years</option>
+              {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.housing_type} onChange={(e) => handleFilterChange('housing_type', e.target.value)}>
+              <option value="">🏠 Housing</option>
+              {HOUSING_TYPES.map(h => <option key={h} value={h}>{h}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.room_type} onChange={(e) => handleFilterChange('room_type', e.target.value)}>
+              <option value="">🛏️ Room Type</option>
+              {ROOM_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.move_in_term} onChange={(e) => handleFilterChange('move_in_term', e.target.value)}>
+              <option value="">📅 Term</option>
+              {MOVE_IN_TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.sleep_time} onChange={(e) => handleFilterChange('sleep_time', e.target.value)}>
+              <option value="">🌙 Bedtime</option>
+              {SLEEP_TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.cleanliness_level} onChange={(e) => handleFilterChange('cleanliness_level', e.target.value)}>
+              <option value="">🧼 Cleanliness</option>
+              {CLEANLINESS_LEVELS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.noise_tolerance} onChange={(e) => handleFilterChange('noise_tolerance', e.target.value)}>
+              <option value="">🔊 Noise</option>
+              {NOISE_TOLERANCES.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <select className="filter-chip-select" value={filters.conflict_style} onChange={(e) => handleFilterChange('conflict_style', e.target.value)}>
+              <option value="">💬 Conflict</option>
+              {CONFLICT_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -358,7 +307,7 @@ function Browse() {
        <>
           <div className="roommate-grid">
             {roommates.map(u => (
-              <RoommateCard key={u.user_id} user={u} onInvite={handleInvite} matchStatus={matchStatuses[u.user_id]} onSendRequest={handleSendRequest} />
+              <RoommateCard key={u.user_id} user={u} onInvite={handleInvite} />
             ))}
           </div>
           {totalPages > 1 && (
