@@ -64,30 +64,20 @@ function Chat() {
       gap: '20px',
     }}>
 
-      <aside style={{
+      {/* Conversations sidebar — dandelion dash-note style */}
+      <aside className="dash-note dash-note--dandelion" style={{
         width: '240px',
-        background: 'var(--ivory)',
-        borderRadius: '12px',
-        boxShadow: '2px 3px 12px rgba(63,73,165,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+        flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        borderTop: '4px solid var(--dandelion)',
+        height: '100%',
       }}>
-        <header style={{
-          padding: '14px 18px',
-          borderBottom: '1px solid rgba(63,73,165,0.1)',
-          background: 'var(--dandelion)',
-        }}>
-          <h3 style={{
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.88rem',
-            fontWeight: '700',
-            color: 'var(--navy)',
-          }}>Conversations</h3>
-        </header>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+        <div className="dash-note-bar dash-bar--dandelion" style={{ flexShrink: 0 }}>
+          <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
+          <span className="dash-note-label" style={{ color: 'var(--strawberry)' }}>Conversations</span>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '10px', background: 'var(--ivory)' }}>
           {myGroups.map(g => (
             <div
               key={g.id}
@@ -100,7 +90,7 @@ function Chat() {
                 fontFamily: 'var(--font-display)',
                 fontSize: '0.92rem',
                 backgroundColor: String(groupId) === String(g.id) ? 'var(--dandelion-light)' : 'transparent',
-                color: 'var(--navy)',
+                color: 'var(--strawberry)',
                 fontWeight: String(groupId) === String(g.id) ? '700' : '500',
                 borderLeft: String(groupId) === String(g.id) ? '3px solid var(--dandelion)' : '3px solid transparent',
                 transition: 'background 0.15s',
@@ -112,33 +102,32 @@ function Chat() {
         </div>
       </aside>
 
-      <div style={{
+      {/* Chat panel — navy dash-note style */}
+      <div className="dash-note dash-note--navy" style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--ivory)',
-        borderRadius: '12px',
-        boxShadow: '2px 3px 12px rgba(63,73,165,0.08), 0 1px 2px rgba(0,0,0,0.04)',
         overflow: 'hidden',
-        borderTop: '4px solid var(--navy)',
+        height: '100%',
       }}>
-        <header style={{
-          padding: '14px 20px',
-          borderBottom: '1px solid rgba(63,73,165,0.1)',
+        <div className="dash-note-bar dash-bar--navy" style={{
+          flexShrink: 0,
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'var(--navy)',
+          justifyContent: 'space-between',
+          padding: '9px 14px',
         }}>
-          <div>
-            <h2 style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.1rem',
-              fontWeight: '700',
-              color: '#ffffff',
-            }}>{currentGroup?.group_name}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="dn-dot" /><span className="dn-dot" /><span className="dn-dot" />
           </div>
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.88rem',
+            fontWeight: '700',
+            color: '#ffffff',
+          }}>
+            {currentGroup?.group_name || 'Chat'}
+          </span>
           <button onClick={() => navigate('/dashboard')} style={{
             background: 'rgba(255,255,255,0.15)',
             border: '1px solid rgba(255,255,255,0.3)',
@@ -146,14 +135,14 @@ function Chat() {
             cursor: 'pointer',
             fontWeight: '600',
             fontFamily: 'var(--font-body)',
-            fontSize: '0.85rem',
-            padding: '6px 14px',
-            borderRadius: '8px',
+            fontSize: '0.82rem',
+            padding: '4px 12px',
+            borderRadius: '6px',
             transition: 'background 0.15s',
           }}>
             ← Dashboard
           </button>
-        </header>
+        </div>
 
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {groupId && <ChatWindow groupId={groupId} currentUser={userData} />}

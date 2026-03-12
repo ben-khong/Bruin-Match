@@ -301,20 +301,25 @@ function Matches() {
 								<div className="matches-group-grid">
 									{g.members.map((m) => (
 										<div key={m.id} className="group-card">
-											<PersonChip
-												name={m.username}
-												sub={
-													Number(m.id) === Number(g.leader_id)
-														? "Leader"
-														: "Member"
-												}
-												showRemove={
-													isLeader && Number(m.id) !== Number(currentUserId)
-												}
-												onRemove={() =>
-													handleRemoveMember(g.id, m.id, m.username)
-												}
-											/>
+											<div className="group-card-titlebar">
+												<span className="group-card-dot" /><span className="group-card-dot" /><span className="group-card-dot" />
+											</div>
+											<div className="group-card-inner">
+												<PersonChip
+													name={m.username}
+													sub={
+														Number(m.id) === Number(g.leader_id)
+															? "Leader"
+															: "Member"
+													}
+													showRemove={
+														isLeader && Number(m.id) !== Number(currentUserId)
+													}
+													onRemove={() =>
+														handleRemoveMember(g.id, m.id, m.username)
+													}
+												/>
+											</div>
 										</div>
 									))}
 								</div>

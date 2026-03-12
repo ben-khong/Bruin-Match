@@ -47,9 +47,9 @@
   display: inline-block;
 }
 
-.dot-red { background: var(--strawberry); }
-.dot-yellow { background: var(--dandelion); }
-.dot-green { background: #6bc492; }
+.dot-red { background: rgba(255, 255, 255, 0.4); }
+.dot-yellow { background: rgba(255, 255, 255, 0.4); }
+.dot-green { background: rgba(255, 255, 255, 0.4); }
 
 /* ── Presets bar ── */
 .presets-bar {
@@ -367,6 +367,7 @@
 }
 
 .roommate-card:nth-child(5n+3) .card-titlebar-name,
+.roommate-card:nth-child(5n+4) .card-titlebar-name,
 .roommate-card:nth-child(5n+5) .card-titlebar-name {
   color: var(--navy);
 }
@@ -383,6 +384,7 @@
 }
 
 .roommate-card:nth-child(5n+3) .card-titlebar-score,
+.roommate-card:nth-child(5n+4) .card-titlebar-score,
 .roommate-card:nth-child(5n+5) .card-titlebar-score {
   color: var(--navy);
   background: rgba(63, 73, 165, 0.12);
