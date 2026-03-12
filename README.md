@@ -23,10 +23,11 @@ A full-stack web application for UCLA students to find and connect with compatib
 - **Compatibility explanation** — each card shows exactly which factors you share with that person.
 - **Browse & filter** — filter by academic year, major, housing type, room type, move-in term, sleep time, noise tolerance, and more
 - **Saved filter presets** — save named filter sets and re-apply them in one click.
-- **Match requests** — send, accept, decline, and cancel roommate requests
-- **Roommate groups** — ACID-transactional group formation and merging on request acceptance; leave group support
+- **Roommate groups & matching** — users can for roommate groupus and invite other users; users can accept, decline, and withdraw requests
+- **Chat** — real-time in-group messaging via Socket.IO with full join/leave lifecycle management.
 - **Notifications center** — sidebar badge with live unread count, per-notification read state, mark-all-as-read.
-
+- **Roommate groups & chat** — group leaders can invite matched users; real-time in-group messaging via Socket.IO with full join/leave lifecycle management.
+ 
 ---
 
 ## Project Structure
@@ -37,7 +38,7 @@ bruin-match/
 ├── backend/
 │   ├── .env                        # Environment variables (do not commit) — see below
 │   ├── server.js                   # Express app entry point
-│   ├── schema.sql                  # Full database schema (all 8 tables)
+│   ├── schema.sql                  # Full database schema
 │   ├── config/
 │   │   ├── db.js                   # PostgreSQL connection pool
 │   │   └── initDb.js               # Runs schema.sql + column migrations on startup
@@ -48,6 +49,7 @@ bruin-match/
 │       ├── profile.js              # GET/POST /api/profile
 │       ├── users.js                # GET /api/users  GET /api/users/:id
 │       ├── matches.js              # Match requests and roommate group management
+│       ├── groups.js               # Group creation, membership, and invite management
 │       ├── filters.js              # Saved filter presets
 │       └── notifications.js        # Notifications CRUD
 └── frontend/
@@ -55,7 +57,8 @@ bruin-match/
         ├── App.jsx                 # Route definitions
         ├── components/
         │   ├── Sidebar.jsx         # Nav sidebar with live notification badge
-        │   └── SidebarLayout.jsx   # Layout wrapper for authenticated pages
+        │   ├── SidebarLayout.jsx   # Layout wrapper for authenticated pages
+        │   └── ChatWindow.jsx      # Socket.IO real-time chat panel (used by Chat.jsx)
         ├── constants/
         │   └── profileOptions.js   # Dropdown option lists for profile/survey fields
         └── pages/
@@ -66,6 +69,7 @@ bruin-match/
             ├── Dashboard.jsx       # (/dashboard)
             ├── Browse.jsx          # (/browse)
             ├── Matches.jsx         # (/matches)
+            ├── Chat.jsx            # (/chat)
             ├── Notifications.jsx   # (/notifications)
             └── Profile.jsx         # (/profile)
 ```
