@@ -97,4 +97,39 @@ router.post('/login', async (req, res) => {
 });
 
 
+// CHANGE PASSWORD
+const authenticateToken = require('../middleware/auth');
+
+router.post('/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+    }
+
+    const user = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.userId]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const validPassword = await bcrypt.compare(currentPassword, user.rows[0].password_hash);
+    if (!validPassword) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.userId]);
+
+    res.json({ message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

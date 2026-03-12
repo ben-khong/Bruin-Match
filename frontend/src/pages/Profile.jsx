@@ -56,6 +56,8 @@ function Profile() {
   const [account, setAccount] = useState({ username: '', email: '' });
   const [form, setForm] = useState(EMPTY_FORM);
   const [editForm, setEditForm] = useState(EMPTY_FORM);
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
+  const [passwordMsg, setPasswordMsg] = useState('');
 
   const fetchProfile = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -161,6 +163,29 @@ function Profile() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!passwordForm.current) { setPasswordMsg('Current password is required.'); return; }
+    if (!passwordForm.newPass) { setPasswordMsg('New password is required.'); return; }
+    if (passwordForm.newPass.length < 6) { setPasswordMsg('New password must be at least 6 characters.'); return; }
+    if (passwordForm.newPass !== passwordForm.confirm) { setPasswordMsg('New passwords do not match.'); return; }
+
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://localhost:3001/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ currentPassword: passwordForm.current, newPassword: passwordForm.newPass }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setPasswordMsg(data.error || 'Failed to change password.'); return; }
+      setPasswordMsg('Password changed successfully!');
+      setPasswordForm({ current: '', newPass: '', confirm: '' });
+      setTimeout(() => setPasswordMsg(''), 3000);
+    } catch {
+      setPasswordMsg('Something went wrong. Please try again.');
+    }
+  };
+
   const initials = form.full_name
     ? form.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
@@ -204,6 +229,7 @@ function Profile() {
             <div className="profile-fields">
               <Field label="Username" value={account.username} />
               <Field label="Email" value={account.email} />
+              <Field label="Password" value="••••••••" />
             </div>
           </section>
 
@@ -253,6 +279,30 @@ function Profile() {
               <Field label="Email" value={account.email} />
             </div>
             <p className="profile-account-note">Username and email cannot be changed here.</p>
+
+            <h2 className="profile-section-title" style={{ marginTop: '20px' }}>Change Password</h2>
+            <div className="profile-edit-grid">
+              <EditField label="Current Password">
+                <input className="profile-input" type="password" placeholder="Enter current password"
+                  value={passwordForm.current} onChange={(e) => setPasswordForm((f) => ({ ...f, current: e.target.value }))} />
+              </EditField>
+              <EditField label="New Password">
+                <input className="profile-input" type="password" placeholder="Enter new password"
+                  value={passwordForm.newPass} onChange={(e) => setPasswordForm((f) => ({ ...f, newPass: e.target.value }))} />
+              </EditField>
+              <EditField label="Confirm New Password">
+                <input className="profile-input" type="password" placeholder="Confirm new password"
+                  value={passwordForm.confirm} onChange={(e) => setPasswordForm((f) => ({ ...f, confirm: e.target.value }))} />
+              </EditField>
+            </div>
+            {passwordMsg && (
+              <p className={passwordMsg.includes('successfully') ? 'profile-success' : 'profile-error'} style={{ marginTop: '10px' }}>
+                {passwordMsg}
+              </p>
+            )}
+            <button className="profile-save-btn" onClick={handlePasswordChange} style={{ marginTop: '12px' }}>
+              Update Password
+            </button>
           </section>
 
           <section className="profile-section">
