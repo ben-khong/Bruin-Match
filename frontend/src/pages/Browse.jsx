@@ -76,7 +76,7 @@ function FilterPill({ value, onChange, options, placeholder }) {
   );
 }
 
-function RoommateCard({ user, onInvite }) {
+function RoommateCard({ user, onInvite, isInvited }) {
   const initials = user.full_name
     ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
@@ -136,9 +136,15 @@ function RoommateCard({ user, onInvite }) {
         </div>
       </div>
       <div className="card-statusbar">
-        <button className="match-btn match-btn--send" onClick={() => onInvite(user.user_id)}>
-          Send Match Request
-        </button>
+        {isInvited ? (
+          <button className="match-btn match-btn--pending" disabled>
+            ✓ Request Sent
+          </button>
+        ) : (
+          <button className="match-btn match-btn--send" onClick={() => onInvite(user.user_id)}>
+            Send Match Request
+          </button>
+        )}
       </div>
     </div>
   );
@@ -155,6 +161,7 @@ function Browse() {
 
   const [myLedGroups, setMyLedGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [invitedUserIds, setInvitedUserIds] = useState(new Set());
   const [presets, setPresets] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [presetName, setPresetName] = useState('');
@@ -207,13 +214,27 @@ function Browse() {
     } catch (err) { console.error('Failed to fetch presets:', err); }
   }, []);
 
+  // Fetches all users already invited by this leader from the DB
+  const fetchSentInvites = useCallback(async (token) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/groups/sent-invites', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const data = await res.json();
+      if (data.invitedUserIds) {
+        setInvitedUserIds(new Set(data.invitedUserIds));
+      }
+    } catch (err) { console.error('Failed to fetch sent invites:', err); }
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
     fetchRoommates(page, filters);
     fetchMyGroups();
     fetchPresets(token);
-  }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets, navigate]);
+    fetchSentInvites(token);
+  }, [page, filters, fetchRoommates, fetchMyGroups, fetchPresets, fetchSentInvites, navigate]);
 
   const handleInvite = async (receiverId) => {
     const token = localStorage.getItem('token');
@@ -228,8 +249,13 @@ function Browse() {
         body: JSON.stringify({ groupId: selectedGroupId, receiverId }),
       });
       const data = await res.json();
-      if (res.ok) alert('Match request sent successfully!');
-      else alert(data.error || 'Could not send request.');
+      if (res.ok) {
+        // Optimistically update local state so button changes immediately
+        setInvitedUserIds((prev) => new Set([...prev, receiverId]));
+        alert('Match request sent successfully!');
+      } else {
+        alert(data.error || 'Could not send request.');
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -448,7 +474,12 @@ function Browse() {
         <>
           <div className="roommate-grid">
             {roommates.map((u) => (
-              <RoommateCard key={u.user_id} user={u} onInvite={handleInvite} />
+              <RoommateCard
+                key={u.user_id}
+                user={u}
+                onInvite={handleInvite}
+                isInvited={invitedUserIds.has(u.user_id)}
+              />
             ))}
           </div>
           {totalPages > 1 && (

@@ -601,6 +601,7 @@
 
 .match-btn--send    { background: var(--navy); color: #ffffff; }
 .match-btn--send:hover { background: #2a3280; }
+.match-btn--sent     { background: #e2e8f0; color: #64748b; cursor: default; }
 .match-btn--pending  { background: var(--dandelion-light); color: #6b5200; cursor: default; opacity: 0.85; }
 .match-btn--incoming { background: var(--shell-light); color: var(--navy); cursor: default; opacity: 0.85; }
 .match-btn--matched  { background: var(--mint-light); color: #14532d; cursor: default; opacity: 0.85; }

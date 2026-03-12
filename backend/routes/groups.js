@@ -201,6 +201,24 @@ router.delete('/:groupId/members/:userId', authenticateToken, async (req, res) =
   }
 });
 
+// --- SENT INVITES ---
+
+router.get('/sent-invites', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT gi.receiver_id
+       FROM group_invites gi
+       JOIN roommate_groups rg ON gi.group_id = rg.id
+       WHERE rg.leader_id = $1 AND gi.status = 'pending'`,
+      [req.user.id]
+    );
+    res.json({ invitedUserIds: result.rows.map(r => r.receiver_id) });
+  } catch (err) {
+    console.error('Failed to fetch sent invites:', err);
+    res.status(500).json({ error: 'Failed to fetch sent invites' });
+  }
+});
+
 // --- MESSAGING ---
 
 router.get('/:groupId/messages', authenticateToken, async (req, res) => {
